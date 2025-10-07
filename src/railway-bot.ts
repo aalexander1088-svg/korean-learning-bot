@@ -41,10 +41,23 @@ class RailwayKoreanBot {
   }
 
   private async setupDatabase() {
-    this.db = await open({
-      filename: process.env.DATABASE_PATH || '/tmp/korean_vocabulary.db',
-      driver: sqlite3.Database
-    });
+    // Use a writable path for Render
+    const dbPath = process.env.DATABASE_PATH || '/tmp/korean_vocabulary.db';
+    
+    try {
+      this.db = await open({
+        filename: dbPath,
+        driver: sqlite3.Database
+      });
+    } catch (error) {
+      console.error('Database setup error:', error);
+      // Fallback to in-memory database for testing
+      this.db = await open({
+        filename: ':memory:',
+        driver: sqlite3.Database
+      });
+      console.log('Using in-memory database as fallback');
+    }
 
     // Create vocabulary table
     await this.db.exec(`
@@ -339,81 +352,92 @@ class RailwayKoreanBot {
   }
 
   private async handleHourlyQuizResponse(ctx: Context, userAnswer: string) {
-    // Get a random word from PDF vocabulary to provide example
-    const randomWord = await this.getRandomWord();
-    
-    if (randomWord) {
-      const exampleSentence = await this.generateExampleSentence(randomWord);
+    try {
+      // Get a random word from PDF vocabulary to provide example
+      const randomWord = await this.getRandomWord();
       
-      const responses = [
-        `Good try! 💪 Here's an example with **${randomWord.korean}** (${randomWord.english}):\n\n💬 ${exampleSentence}\n\nKeep practicing with /quiz!`,
-        `Nice attempt! 🎯 Here's an example with **${randomWord.korean}** (${randomWord.english}):\n\n💬 ${exampleSentence}\n\nTry /quiz for more practice!`,
-        `Keep learning! 📚 Here's an example with **${randomWord.korean}** (${randomWord.english}):\n\n💬 ${exampleSentence}\n\nUse /quiz for interactive practice!`,
-        `Great effort! 🌟 Here's an example with **${randomWord.korean}** (${randomWord.english}):\n\n💬 ${exampleSentence}\n\nPractice more with /quiz!`
-      ];
-      
-      const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-      ctx.reply(randomResponse, { parse_mode: 'Markdown' });
-    } else {
-      // Fallback if no word available
+      if (randomWord) {
+        const exampleSentence = await this.generateExampleSentence(randomWord);
+        
+        const responses = [
+          `Good try! 💪 Here's an example with **${randomWord.korean}** (${randomWord.english}):\n\n💬 ${exampleSentence}\n\nKeep practicing with /quiz!`,
+          `Nice attempt! 🎯 Here's an example with **${randomWord.korean}** (${randomWord.english}):\n\n💬 ${exampleSentence}\n\nTry /quiz for more practice!`,
+          `Keep learning! 📚 Here's an example with **${randomWord.korean}** (${randomWord.english}):\n\n💬 ${exampleSentence}\n\nUse /quiz for interactive practice!`,
+          `Great effort! 🌟 Here's an example with **${randomWord.korean}** (${randomWord.english}):\n\n💬 ${exampleSentence}\n\nPractice more with /quiz!`
+        ];
+        
+        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+        ctx.reply(randomResponse, { parse_mode: 'Markdown' });
+      } else {
+        // Fallback if no word available
+        ctx.reply("Good try! 💪 Keep practicing with /quiz for interactive questions!");
+      }
+    } catch (error) {
+      console.error('Error in handleHourlyQuizResponse:', error);
+      // Simple fallback response
       ctx.reply("Good try! 💪 Keep practicing with /quiz for interactive questions!");
     }
   }
 
   private async checkQuizAnswer(ctx: Context, userAnswer: string) {
-    const userId = ctx.from!.id;
-    const session = this.userSessions.get(userId);
-    
-    if (!session || !session.currentWord) {
-      return;
-    }
-
-    const word = session.currentWord;
-    const correctAnswer = word.english.toLowerCase();
-    const koreanAnswer = word.korean.toLowerCase();
-
-    let isCorrect = false;
-    let feedback = '';
-
-    // Check if answer matches English meaning or Korean word
-    if (userAnswer === correctAnswer || userAnswer === koreanAnswer) {
-      isCorrect = true;
-      session.quizScore++;
-      await this.updateWordStats(word.id, true);
+    try {
+      const userId = ctx.from!.id;
+      const session = this.userSessions.get(userId);
       
-      // Generate example sentence for correct answer
-      const exampleSentence = await this.generateExampleSentence(word);
-      
-      feedback = `✅ **Correct!** Great job!\n\n` +
-        `💬 **Example:** ${exampleSentence}\n\n`;
-    } else {
-      await this.updateWordStats(word.id, false);
-      
-      // Generate example sentence for incorrect answer
-      const exampleSentence = await this.generateExampleSentence(word);
-      
-      feedback = `❌ **Not quite right.**\n\n` +
-        `The correct answer is: **${word.korean}** - ${word.english}\n\n` +
-        `💬 **Example:** ${exampleSentence}\n\n`;
-    }
+      if (!session || !session.currentWord) {
+        return;
+      }
 
-    feedback += `📊 **Score:** ${session.quizScore}/${session.totalQuestions}\n\n`;
+      const word = session.currentWord;
+      const correctAnswer = word.english.toLowerCase();
+      const koreanAnswer = word.korean.toLowerCase();
 
-    if (session.totalQuestions < 5) {
-      feedback += `Next question coming up... 🎯`;
-    } else {
-      feedback += `🎉 **Quiz Complete!** Final score: ${session.quizScore}/5\n\n` +
-        `Type /quiz to try again or /word for a random word!`;
-    }
+      let isCorrect = false;
+      let feedback = '';
 
-    ctx.reply(feedback, { parse_mode: 'Markdown' });
+      // Check if answer matches English meaning or Korean word
+      if (userAnswer === correctAnswer || userAnswer === koreanAnswer) {
+        isCorrect = true;
+        session.quizScore++;
+        await this.updateWordStats(word.id, true);
+        
+        // Generate example sentence for correct answer
+        const exampleSentence = await this.generateExampleSentence(word);
+        
+        feedback = `✅ **Correct!** Great job!\n\n` +
+          `💬 **Example:** ${exampleSentence}\n\n`;
+      } else {
+        await this.updateWordStats(word.id, false);
+        
+        // Generate example sentence for incorrect answer
+        const exampleSentence = await this.generateExampleSentence(word);
+        
+        feedback = `❌ **Not quite right.**\n\n` +
+          `The correct answer is: **${word.korean}** - ${word.english}\n\n` +
+          `💬 **Example:** ${exampleSentence}\n\n`;
+      }
 
-    // Clear current word and continue quiz
-    session.currentWord = undefined;
-    this.userSessions.set(userId, session);
+      feedback += `📊 **Score:** ${session.quizScore}/${session.totalQuestions}\n\n`;
 
-    if (session.totalQuestions < 5) {
-      setTimeout(() => this.sendQuizQuestion(ctx), 2000);
+      if (session.totalQuestions < 5) {
+        feedback += `Next question coming up... 🎯`;
+      } else {
+        feedback += `🎉 **Quiz Complete!** Final score: ${session.quizScore}/5\n\n` +
+          `Type /quiz to try again or /word for a random word!`;
+      }
+
+      ctx.reply(feedback, { parse_mode: 'Markdown' });
+
+      // Clear current word and continue quiz
+      session.currentWord = undefined;
+      this.userSessions.set(userId, session);
+
+      if (session.totalQuestions < 5) {
+        setTimeout(() => this.sendQuizQuestion(ctx), 2000);
+      }
+    } catch (error) {
+      console.error('Error in checkQuizAnswer:', error);
+      ctx.reply('Sorry, I had trouble checking your answer. Please try again!');
     }
   }
 
