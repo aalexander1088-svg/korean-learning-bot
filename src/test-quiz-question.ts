@@ -6,8 +6,8 @@ import { OpenAI } from 'openai';
 
 dotenv.config();
 
-async function sendRenderHourlyWord() {
-  console.log('🕐 Sending hourly Korean word via Render...');
+async function testQuizQuestion() {
+  console.log('🧪 Testing quiz question format...');
   
   if (!process.env.TELEGRAM_BOT_TOKEN) {
     console.error('❌ TELEGRAM_BOT_TOKEN is required');
@@ -28,38 +28,13 @@ async function sendRenderHourlyWord() {
     const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     
-    // Pre-loaded vocabulary from your PDF (same as in railway-bot.ts)
+    // Sample Korean words
     const pdfVocabulary = [
       { korean: '안녕하세요', english: 'Hello', difficulty: 'beginner' },
       { korean: '감사합니다', english: 'Thank you', difficulty: 'beginner' },
-      { korean: '죄송합니다', english: 'Sorry', difficulty: 'beginner' },
-      { korean: '네', english: 'Yes', difficulty: 'beginner' },
-      { korean: '아니요', english: 'No', difficulty: 'beginner' },
-      { korean: '물', english: 'Water', difficulty: 'beginner' },
-      { korean: '밥', english: 'Rice/Food', difficulty: 'beginner' },
-      { korean: '집', english: 'House', difficulty: 'beginner' },
-      { korean: '학교', english: 'School', difficulty: 'beginner' },
-      { korean: '친구', english: 'Friend', difficulty: 'beginner' },
-      { korean: '가족', english: 'Family', difficulty: 'intermediate' },
-      { korean: '사랑', english: 'Love', difficulty: 'intermediate' },
-      { korean: '꿈', english: 'Dream', difficulty: 'intermediate' },
       { korean: '희망', english: 'Hope', difficulty: 'intermediate' },
-      { korean: '노력', english: 'Effort', difficulty: 'intermediate' },
-      { korean: '성공', english: 'Success', difficulty: 'intermediate' },
-      { korean: '실패', english: 'Failure', difficulty: 'intermediate' },
-      { korean: '도전', english: 'Challenge', difficulty: 'intermediate' },
-      { korean: '기회', english: 'Opportunity', difficulty: 'intermediate' },
-      { korean: '경험', english: 'Experience', difficulty: 'intermediate' },
       { korean: '복잡한', english: 'Complicated', difficulty: 'advanced' },
-      { korean: '단순하다', english: 'To be simple', difficulty: 'advanced' },
-      { korean: '흡수하다', english: 'To absorb', difficulty: 'advanced' },
-      { korean: '충격', english: 'Shock', difficulty: 'advanced' },
-      { korean: '영향', english: 'Influence', difficulty: 'advanced' },
-      { korean: '달리기', english: 'Running', difficulty: 'intermediate' },
-      { korean: '그림', english: 'Painting', difficulty: 'intermediate' },
-      { korean: '화가', english: 'Painter', difficulty: 'intermediate' },
-      { korean: '벽', english: 'Wall', difficulty: 'intermediate' },
-      { korean: '걸다', english: 'To hang', difficulty: 'intermediate' }
+      { korean: '학교', english: 'School', difficulty: 'beginner' }
     ];
 
     // Pick a random word
@@ -101,19 +76,19 @@ async function sendRenderHourlyWord() {
     if (questionType === 'meaning') {
       // Show Korean word, ask for English meaning
       quizMessage = 
-        `🕐 **Hourly Korean Quiz**\n\n` +
+        `🧪 **Test Quiz Question**\n\n` +
         `**Question:** What does **${randomWord.korean}** mean?\n\n` +
         `Type your answer below! 💭`;
     } else if (questionType === 'word') {
       // Show English word, ask for Korean translation
       quizMessage = 
-        `🕐 **Hourly Korean Quiz**\n\n` +
+        `🧪 **Test Quiz Question**\n\n` +
         `**Question:** What is the Korean word for **${randomWord.english}**?\n\n` +
         `Type your answer below! 💭`;
     } else {
       // Show sentence, ask for translation
       quizMessage = 
-        `🕐 **Hourly Korean Quiz**\n\n` +
+        `🧪 **Test Quiz Question**\n\n` +
         `**Question:** What does this Korean sentence mean?\n\n` +
         `**${exampleSentence.split('(')[0].trim()}**\n\n` +
         `Type your answer below! 💭`;
@@ -121,20 +96,14 @@ async function sendRenderHourlyWord() {
 
     await bot.telegram.sendMessage(process.env.TELEGRAM_CHAT_ID!, quizMessage, { parse_mode: 'Markdown' });
     
-    // Store the correct answer for potential follow-up
-    const correctAnswer = questionType === 'meaning' ? randomWord.english : 
-                        questionType === 'word' ? randomWord.korean : 
-                        exampleSentence.split('(')[1]?.split(')')[0]?.trim() || 'See the sentence above';
-    
-    console.log('✅ Hourly Korean quiz question sent successfully!');
+    console.log('✅ Test quiz question sent successfully!');
     console.log(`📝 Question type: ${questionType}`);
     console.log(`📝 Word: ${randomWord.korean} - ${randomWord.english}`);
-    console.log(`📝 Correct answer: ${correctAnswer}`);
 
   } catch (error) {
-    console.error('❌ Failed to send hourly word:', error);
+    console.error('❌ Failed to send test quiz question:', error);
     process.exit(1);
   }
 }
 
-sendRenderHourlyWord().catch(console.error);
+testQuizQuestion().catch(console.error);

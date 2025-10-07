@@ -32,6 +32,7 @@
     "railway-bot": "node dist/railway-bot-runner.js",
     "railway-hourly": "node dist/railway-hourly-sender.js",
     "render-hourly": "node dist/render-hourly-sender.js",
+    "test-quiz": "ts-node src/test-quiz-question.ts",
     "test-google-docs": "ts-node src/test-google-docs.ts",
     "extract-json": "ts-node src/extract-json-info.ts",
     "upload-pdf": "ts-node src/pdf-uploader.ts"

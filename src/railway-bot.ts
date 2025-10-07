@@ -359,13 +359,34 @@ class RailwayKoreanBot {
     const session = this.userSessions.get(userId);
     const userAnswer = ctx.message && 'text' in ctx.message ? ctx.message.text.toLowerCase().trim() : '';
 
-    if (!session || !session.currentWord || !userAnswer) {
+    if (!userAnswer) {
       return;
     }
 
-    if (session.studyMode === 'quiz') {
+    // Handle quiz mode responses
+    if (session && session.currentWord && session.studyMode === 'quiz') {
       await this.checkQuizAnswer(ctx, userAnswer);
+      return;
     }
+
+    // Handle hourly quiz responses (when not in active quiz mode)
+    if (!session || session.studyMode !== 'quiz') {
+      await this.handleHourlyQuizResponse(ctx, userAnswer);
+    }
+  }
+
+  private async handleHourlyQuizResponse(ctx: Context, userAnswer: string) {
+    // Simple response for hourly quiz answers
+    // Since we don't know the exact question, provide general feedback
+    const responses = [
+      "Good try! 💪 Keep practicing with /quiz for interactive questions!",
+      "Nice attempt! 🎯 Try /quiz for more practice questions!",
+      "Keep learning! 📚 Use /quiz for interactive practice!",
+      "Great effort! 🌟 Practice more with /quiz!"
+    ];
+    
+    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+    ctx.reply(randomResponse);
   }
 
   private async checkQuizAnswer(ctx: Context, userAnswer: string) {
