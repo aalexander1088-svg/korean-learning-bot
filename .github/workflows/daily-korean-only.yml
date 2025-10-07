@@ -2,8 +2,8 @@ name: Daily Korean Learning Email
 
 on:
   schedule:
-    # Run at 5:30 AM CST (11:30 AM UTC) every day - 30 minutes after news
-    - cron: '30 11 * * *'
+    # Run at 5:00 AM CST (11:00 AM UTC) every day - same time as news
+    - cron: '0 11 * * *'
   workflow_dispatch: # Allow manual triggering
 
 jobs:
