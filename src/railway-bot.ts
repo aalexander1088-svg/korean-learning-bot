@@ -5,6 +5,7 @@ import * as dotenv from 'dotenv';
 import * as sqlite3 from 'sqlite3';
 import { open, Database } from 'sqlite';
 import { OpenAI } from 'openai';
+import express from 'express';
 import { PDF_VOCABULARY, KoreanWord } from './shared-vocabulary';
 
 dotenv.config();
@@ -37,10 +38,12 @@ class RailwayKoreanBot {
   private currentHourlyQuestion: { word: string; answer: string; questionType: string } | null = null;
   private isStarted: boolean = false;
   private lastCommandTime: Map<number, number> = new Map();
+  private app: express.Application;
 
   constructor() {
     this.bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN!);
     this.openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    this.app = express();
     // Don't call setupDatabase() or setupBotCommands() here - call them in start()
   }
 
@@ -234,6 +237,35 @@ class RailwayKoreanBot {
     this.bot.catch((err, ctx) => {
       console.error('Bot error:', err);
       ctx.reply('Sorry, something went wrong! Please try again.');
+    });
+  }
+
+  private setupHttpServer() {
+    this.app.use(express.json());
+    
+    // Health check endpoint
+    this.app.get('/health', (req, res) => {
+      res.json({ 
+        status: 'ok', 
+        message: 'Korean Telegram Bot is running',
+        timestamp: new Date().toISOString(),
+        vocabularyCount: PDF_VOCABULARY.length
+      });
+    });
+    
+    // Root endpoint
+    this.app.get('/', (req, res) => {
+      res.json({ 
+        message: 'Korean Telegram Bot API',
+        endpoints: ['/health'],
+        bot: 'Running'
+      });
+    });
+    
+    // Start HTTP server
+    const port = process.env.PORT || 3000;
+    this.app.listen(port, () => {
+      console.log(`🌐 HTTP server running on port ${port}`);
     });
   }
 
@@ -681,6 +713,9 @@ class RailwayKoreanBot {
       
       console.log('🔧 Setting up bot commands...');
       this.setupBotCommands();
+      
+      console.log('🔧 Setting up HTTP server...');
+      this.setupHttpServer();
       
       console.log('🔧 Launching bot...');
       await this.bot.launch();
