@@ -35,12 +35,12 @@ class RailwayKoreanBot {
   private openai: OpenAI;
   private userSessions: Map<number, UserSession> = new Map();
   private currentHourlyQuestion: { word: string; answer: string; questionType: string } | null = null;
+  private isStarted: boolean = false;
 
   constructor() {
     this.bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN!);
     this.openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    this.setupDatabase();
-    this.setupBotCommands();
+    // Don't call setupDatabase() or setupBotCommands() here - call them in start()
   }
 
   private async setupDatabase() {
@@ -660,7 +660,21 @@ class RailwayKoreanBot {
 
   public async start() {
     try {
+      if (this.isStarted) {
+        console.log('⚠️ Bot is already started, skipping...');
+        return;
+      }
+      
+      console.log('🔧 Setting up database...');
+      await this.setupDatabase();
+      
+      console.log('🔧 Setting up bot commands...');
+      this.setupBotCommands();
+      
+      console.log('🔧 Launching bot...');
       await this.bot.launch();
+      
+      this.isStarted = true;
       console.log('🚀 Railway Korean Telegram Bot started successfully!');
       
     } catch (error) {
