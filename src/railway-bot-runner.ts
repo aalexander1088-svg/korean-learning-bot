@@ -21,6 +21,10 @@ async function runRailwayBot() {
   const bot = new RailwayKoreanBot();
   await bot.start();
   console.log('✅ Railway Korean Telegram Bot launched successfully!');
+
+  // Enable graceful stop
+  process.once('SIGINT', () => bot.stop('SIGINT'));
+  process.once('SIGTERM', () => bot.stop('SIGTERM'));
 }
 
 runRailwayBot().catch(console.error);

@@ -526,14 +526,15 @@ class RailwayKoreanBot {
       await this.bot.launch();
       console.log('🚀 Railway Korean Telegram Bot started successfully!');
       
-      // Graceful shutdown
-      process.once('SIGINT', () => this.bot.stop('SIGINT'));
-      process.once('SIGTERM', () => this.bot.stop('SIGTERM'));
-      
     } catch (error) {
       console.error('Failed to start bot:', error);
       process.exit(1);
     }
+  }
+
+  public async stop(signal: string) {
+    console.log(`🛑 Stopping bot with signal: ${signal}`);
+    await this.bot.stop(signal);
   }
 }
 
