@@ -99,6 +99,12 @@ Thumbs.db
 *.tmp
 *.temp
 
+# Sensitive files and credentials
+service-account-key.json
+credentials.json
+*.key
+*.pem
+
 
 
 
