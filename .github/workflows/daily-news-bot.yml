@@ -39,12 +39,8 @@ jobs:
         echo "EMAIL_PASSWORD: ${EMAIL_PASSWORD:0:5}..."
         echo "DEFAULT_EMAIL: $DEFAULT_EMAIL"
         echo "NEWS_RECIPIENT_EMAIL: $NEWS_RECIPIENT_EMAIL"
-        echo "🔧 Setting environment variables for Node.js..."
-        export EMAIL_USER="$EMAIL_USER"
-        export EMAIL_PASSWORD="$EMAIL_PASSWORD"
-        export DEFAULT_EMAIL="$DEFAULT_EMAIL"
-        export NEWS_RECIPIENT_EMAIL="$NEWS_RECIPIENT_EMAIL"
-        npm run news-bot
+        echo "🚀 Running news bot with environment variables..."
+        EMAIL_USER="$EMAIL_USER" EMAIL_PASSWORD="$EMAIL_PASSWORD" DEFAULT_EMAIL="$DEFAULT_EMAIL" NEWS_RECIPIENT_EMAIL="$NEWS_RECIPIENT_EMAIL" node dist/news-bot-runner.js
       
     - name: Run Korean learning bot (PDF + Google Docs)
       env:
@@ -59,7 +55,7 @@ jobs:
         NODE_OPTIONS: "--no-experimental-fetch"
       run: |
         # Run the scheduler which will handle both PDF and Google Doc emails
-        npm run schedule -- --test || echo "Korean learning bot completed"
+        EMAIL_USER="$EMAIL_USER" EMAIL_PASSWORD="$EMAIL_PASSWORD" DEFAULT_EMAIL="$DEFAULT_EMAIL" OPENAI_API_KEY="$OPENAI_API_KEY" GOOGLE_DOC_ID="$GOOGLE_DOC_ID" GOOGLE_SERVICE_ACCOUNT_EMAIL="$GOOGLE_SERVICE_ACCOUNT_EMAIL" GOOGLE_PRIVATE_KEY="$GOOGLE_PRIVATE_KEY" GITHUB_ACTIONS="true" npm run schedule -- --test || echo "Korean learning bot completed"
         
     - name: Notify on success
       if: success()
