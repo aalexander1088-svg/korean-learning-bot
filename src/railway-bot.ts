@@ -5,10 +5,11 @@ import * as dotenv from 'dotenv';
 import * as sqlite3 from 'sqlite3';
 import { open, Database } from 'sqlite';
 import { OpenAI } from 'openai';
+import { PDF_VOCABULARY, KoreanWord } from './shared-vocabulary';
 
 dotenv.config();
 
-interface KoreanWord {
+interface DatabaseKoreanWord {
   id: number;
   korean: string;
   english: string;
@@ -20,7 +21,7 @@ interface KoreanWord {
 
 interface UserSession {
   userId: number;
-  currentWord?: KoreanWord;
+  currentWord?: DatabaseKoreanWord;
   studyMode: 'quick' | 'study' | 'quiz';
   quizScore: number;
   totalQuestions: number;
@@ -74,53 +75,15 @@ class RailwayKoreanBot {
 
     console.log('📚 Loading PDF vocabulary into cloud database...');
 
-    // This vocabulary was extracted from your Korean lesson PDF
-    const pdfVocabulary = [
-      // Basic words from your PDF
-      { korean: '안녕하세요', english: 'Hello', difficulty: 'beginner' },
-      { korean: '감사합니다', english: 'Thank you', difficulty: 'beginner' },
-      { korean: '죄송합니다', english: 'Sorry', difficulty: 'beginner' },
-      { korean: '네', english: 'Yes', difficulty: 'beginner' },
-      { korean: '아니요', english: 'No', difficulty: 'beginner' },
-      { korean: '물', english: 'Water', difficulty: 'beginner' },
-      { korean: '밥', english: 'Rice/Food', difficulty: 'beginner' },
-      { korean: '집', english: 'House', difficulty: 'beginner' },
-      { korean: '학교', english: 'School', difficulty: 'beginner' },
-      { korean: '친구', english: 'Friend', difficulty: 'beginner' },
-      
-      // Intermediate words from your PDF
-      { korean: '가족', english: 'Family', difficulty: 'intermediate' },
-      { korean: '사랑', english: 'Love', difficulty: 'intermediate' },
-      { korean: '꿈', english: 'Dream', difficulty: 'intermediate' },
-      { korean: '희망', english: 'Hope', difficulty: 'intermediate' },
-      { korean: '노력', english: 'Effort', difficulty: 'intermediate' },
-      { korean: '성공', english: 'Success', difficulty: 'intermediate' },
-      { korean: '실패', english: 'Failure', difficulty: 'intermediate' },
-      { korean: '도전', english: 'Challenge', difficulty: 'intermediate' },
-      { korean: '기회', english: 'Opportunity', difficulty: 'intermediate' },
-      { korean: '경험', english: 'Experience', difficulty: 'intermediate' },
-      
-      // Advanced words from your PDF
-      { korean: '복잡한', english: 'Complicated', difficulty: 'advanced' },
-      { korean: '단순하다', english: 'To be simple', difficulty: 'advanced' },
-      { korean: '흡수하다', english: 'To absorb', difficulty: 'advanced' },
-      { korean: '충격', english: 'Shock', difficulty: 'advanced' },
-      { korean: '영향', english: 'Influence', difficulty: 'advanced' },
-      { korean: '달리기', english: 'Running', difficulty: 'intermediate' },
-      { korean: '그림', english: 'Painting', difficulty: 'intermediate' },
-      { korean: '화가', english: 'Painter', difficulty: 'intermediate' },
-      { korean: '벽', english: 'Wall', difficulty: 'intermediate' },
-      { korean: '걸다', english: 'To hang', difficulty: 'intermediate' }
-    ];
-
-    for (const word of pdfVocabulary) {
+    // Use shared vocabulary from your PDF lessons
+    for (const word of PDF_VOCABULARY) {
       await this.db.run(`
         INSERT INTO vocabulary (korean, english, difficulty)
         VALUES (?, ?, ?)
       `, [word.korean, word.english, word.difficulty]);
     }
 
-    console.log(`✅ Loaded ${pdfVocabulary.length} words from PDF into cloud database`);
+    console.log(`✅ Loaded ${PDF_VOCABULARY.length} words from PDF into cloud database`);
   }
 
   private setupBotCommands() {
@@ -270,14 +233,14 @@ class RailwayKoreanBot {
     }
   }
 
-  private async getRandomWord(): Promise<KoreanWord | null> {
+  private async getRandomWord(): Promise<DatabaseKoreanWord | null> {
     const result = await this.db.get(
       `SELECT * FROM vocabulary ORDER BY RANDOM() LIMIT 1`
     );
     return result || null;
   }
 
-  private async generateExampleSentence(word: KoreanWord): Promise<string> {
+  private async generateExampleSentence(word: DatabaseKoreanWord): Promise<string> {
     try {
       const response = await this.openai.chat.completions.create({
         model: "gpt-3.5-turbo",

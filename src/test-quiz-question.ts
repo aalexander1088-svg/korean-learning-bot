@@ -3,6 +3,7 @@
 import * as dotenv from 'dotenv';
 import { Telegraf } from 'telegraf';
 import { OpenAI } from 'openai';
+import { getRandomPDFWord } from './shared-vocabulary';
 
 dotenv.config();
 
@@ -28,17 +29,8 @@ async function testQuizQuestion() {
     const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     
-    // Sample Korean words
-    const pdfVocabulary = [
-      { korean: '안녕하세요', english: 'Hello', difficulty: 'beginner' },
-      { korean: '감사합니다', english: 'Thank you', difficulty: 'beginner' },
-      { korean: '희망', english: 'Hope', difficulty: 'intermediate' },
-      { korean: '복잡한', english: 'Complicated', difficulty: 'advanced' },
-      { korean: '학교', english: 'School', difficulty: 'beginner' }
-    ];
-
-    // Pick a random word
-    const randomWord = pdfVocabulary[Math.floor(Math.random() * pdfVocabulary.length)];
+    // Pick a random word from your PDF vocabulary
+    const randomWord = getRandomPDFWord();
     
     // Generate example sentence using OpenAI
     let exampleSentence = '';

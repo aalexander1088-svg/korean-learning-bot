@@ -3,6 +3,7 @@
 import * as dotenv from 'dotenv';
 import { Telegraf } from 'telegraf';
 import { OpenAI } from 'openai';
+import { PDF_VOCABULARY, getRandomPDFWord } from './shared-vocabulary';
 
 dotenv.config();
 
@@ -28,42 +29,8 @@ async function sendRenderHourlyWord() {
     const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     
-    // Pre-loaded vocabulary from your PDF (same as in railway-bot.ts)
-    const pdfVocabulary = [
-      { korean: '안녕하세요', english: 'Hello', difficulty: 'beginner' },
-      { korean: '감사합니다', english: 'Thank you', difficulty: 'beginner' },
-      { korean: '죄송합니다', english: 'Sorry', difficulty: 'beginner' },
-      { korean: '네', english: 'Yes', difficulty: 'beginner' },
-      { korean: '아니요', english: 'No', difficulty: 'beginner' },
-      { korean: '물', english: 'Water', difficulty: 'beginner' },
-      { korean: '밥', english: 'Rice/Food', difficulty: 'beginner' },
-      { korean: '집', english: 'House', difficulty: 'beginner' },
-      { korean: '학교', english: 'School', difficulty: 'beginner' },
-      { korean: '친구', english: 'Friend', difficulty: 'beginner' },
-      { korean: '가족', english: 'Family', difficulty: 'intermediate' },
-      { korean: '사랑', english: 'Love', difficulty: 'intermediate' },
-      { korean: '꿈', english: 'Dream', difficulty: 'intermediate' },
-      { korean: '희망', english: 'Hope', difficulty: 'intermediate' },
-      { korean: '노력', english: 'Effort', difficulty: 'intermediate' },
-      { korean: '성공', english: 'Success', difficulty: 'intermediate' },
-      { korean: '실패', english: 'Failure', difficulty: 'intermediate' },
-      { korean: '도전', english: 'Challenge', difficulty: 'intermediate' },
-      { korean: '기회', english: 'Opportunity', difficulty: 'intermediate' },
-      { korean: '경험', english: 'Experience', difficulty: 'intermediate' },
-      { korean: '복잡한', english: 'Complicated', difficulty: 'advanced' },
-      { korean: '단순하다', english: 'To be simple', difficulty: 'advanced' },
-      { korean: '흡수하다', english: 'To absorb', difficulty: 'advanced' },
-      { korean: '충격', english: 'Shock', difficulty: 'advanced' },
-      { korean: '영향', english: 'Influence', difficulty: 'advanced' },
-      { korean: '달리기', english: 'Running', difficulty: 'intermediate' },
-      { korean: '그림', english: 'Painting', difficulty: 'intermediate' },
-      { korean: '화가', english: 'Painter', difficulty: 'intermediate' },
-      { korean: '벽', english: 'Wall', difficulty: 'intermediate' },
-      { korean: '걸다', english: 'To hang', difficulty: 'intermediate' }
-    ];
-
-    // Pick a random word
-    const randomWord = pdfVocabulary[Math.floor(Math.random() * pdfVocabulary.length)];
+    // Pick a random word from your PDF vocabulary
+    const randomWord = getRandomPDFWord();
     
     // Generate example sentence using OpenAI
     let exampleSentence = '';
