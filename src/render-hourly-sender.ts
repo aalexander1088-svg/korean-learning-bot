@@ -64,34 +64,36 @@ async function sendRenderHourlyWord() {
     const questionTypes = ['meaning', 'word', 'sentence'];
     const questionType = questionTypes[Math.floor(Math.random() * questionTypes.length)];
     let quizMessage = '';
+    let correctAnswer = '';
     
     if (questionType === 'meaning') {
       // Show Korean word, ask for English meaning
+      correctAnswer = randomWord.english;
       quizMessage = 
         `🕐 **Hourly Korean Quiz**\n\n` +
         `**Question:** What does **${randomWord.korean}** mean?\n\n` +
-        `Type your answer below! 💭`;
+        `Type your answer below! 💭\n\n` +
+        `💡 *Answer: ${correctAnswer}*`;
     } else if (questionType === 'word') {
       // Show English word, ask for Korean translation
+      correctAnswer = randomWord.korean;
       quizMessage = 
         `🕐 **Hourly Korean Quiz**\n\n` +
         `**Question:** What is the Korean word for **${randomWord.english}**?\n\n` +
-        `Type your answer below! 💭`;
+        `Type your answer below! 💭\n\n` +
+        `💡 *Answer: ${correctAnswer}*`;
     } else {
       // Show sentence, ask for translation
+      correctAnswer = exampleSentence.split('(')[1]?.split(')')[0]?.trim() || 'See the sentence above';
       quizMessage = 
         `🕐 **Hourly Korean Quiz**\n\n` +
         `**Question:** What does this Korean sentence mean?\n\n` +
         `**${exampleSentence.split('(')[0].trim()}**\n\n` +
-        `Type your answer below! 💭`;
+        `Type your answer below! 💭\n\n` +
+        `💡 *Answer: ${correctAnswer}*`;
     }
 
     await bot.telegram.sendMessage(process.env.TELEGRAM_CHAT_ID!, quizMessage, { parse_mode: 'Markdown' });
-    
-    // Store the correct answer for potential follow-up
-    const correctAnswer = questionType === 'meaning' ? randomWord.english : 
-                        questionType === 'word' ? randomWord.korean : 
-                        exampleSentence.split('(')[1]?.split(')')[0]?.trim() || 'See the sentence above';
     
     console.log('✅ Hourly Korean quiz question sent successfully!');
     console.log(`📝 Question type: ${questionType}`);

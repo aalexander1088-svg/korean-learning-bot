@@ -32,6 +32,7 @@ class RailwayKoreanBot {
   private db!: Database;
   private openai: OpenAI;
   private userSessions: Map<number, UserSession> = new Map();
+  private currentHourlyQuestion: { word: string; answer: string; questionType: string } | null = null;
 
   constructor() {
     this.bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN!);
@@ -353,24 +354,60 @@ class RailwayKoreanBot {
 
   private async handleHourlyQuizResponse(ctx: Context, userAnswer: string) {
     try {
-      // Get a random word from PDF vocabulary to provide example
-      const randomWord = await this.getRandomWord();
-      
-      if (randomWord) {
-        const exampleSentence = await this.generateExampleSentence(randomWord);
+      // Check if there's a current hourly question to respond to
+      if (this.currentHourlyQuestion) {
+        const { word, answer, questionType } = this.currentHourlyQuestion;
         
+        // Check if the answer is correct
+        const isCorrect = userAnswer.toLowerCase().trim() === answer.toLowerCase().trim();
+        
+        if (isCorrect) {
+          // Generate example sentence for the word
+          const wordFromDB = await this.db.get('SELECT * FROM vocabulary WHERE korean = ? OR english = ?', [word, word]);
+          let exampleSentence = '';
+          
+          if (wordFromDB) {
+            exampleSentence = await this.generateExampleSentence(wordFromDB);
+          }
+          
+          ctx.reply(
+            `✅ **Correct!** Great job!\n\n` +
+            `**${word}** means **${answer}**\n\n` +
+            `💬 **Example:** ${exampleSentence}\n\n` +
+            `Keep practicing! 🎯`,
+            { parse_mode: 'Markdown' }
+          );
+        } else {
+          // Generate example sentence for the word
+          const wordFromDB = await this.db.get('SELECT * FROM vocabulary WHERE korean = ? OR english = ?', [word, word]);
+          let exampleSentence = '';
+          
+          if (wordFromDB) {
+            exampleSentence = await this.generateExampleSentence(wordFromDB);
+          }
+          
+          ctx.reply(
+            `❌ **Not quite right.**\n\n` +
+            `**${word}** means **${answer}**\n\n` +
+            `💬 **Example:** ${exampleSentence}\n\n` +
+            `Keep practicing! 🎯`,
+            { parse_mode: 'Markdown' }
+          );
+        }
+        
+        // Clear the current question
+        this.currentHourlyQuestion = null;
+      } else {
+        // No current question, provide general encouragement
         const responses = [
-          `Good try! 💪 Here's an example with **${randomWord.korean}** (${randomWord.english}):\n\n💬 ${exampleSentence}\n\nKeep practicing with /quiz!`,
-          `Nice attempt! 🎯 Here's an example with **${randomWord.korean}** (${randomWord.english}):\n\n💬 ${exampleSentence}\n\nTry /quiz for more practice!`,
-          `Keep learning! 📚 Here's an example with **${randomWord.korean}** (${randomWord.english}):\n\n💬 ${exampleSentence}\n\nUse /quiz for interactive practice!`,
-          `Great effort! 🌟 Here's an example with **${randomWord.korean}** (${randomWord.english}):\n\n💬 ${exampleSentence}\n\nPractice more with /quiz!`
+          "Good try! 💪 Keep practicing with /quiz for interactive questions!",
+          "Nice attempt! 🎯 Try /quiz for more practice questions!",
+          "Keep learning! 📚 Use /quiz for interactive practice!",
+          "Great effort! 🌟 Practice more with /quiz!"
         ];
         
         const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-        ctx.reply(randomResponse, { parse_mode: 'Markdown' });
-      } else {
-        // Fallback if no word available
-        ctx.reply("Good try! 💪 Keep practicing with /quiz for interactive questions!");
+        ctx.reply(randomResponse);
       }
     } catch (error) {
       console.error('Error in handleHourlyQuizResponse:', error);
@@ -534,6 +571,11 @@ class RailwayKoreanBot {
         WHERE id = ?
       `, [now, wordId]);
     }
+  }
+
+  // Method to set the current hourly question for response tracking
+  public setCurrentHourlyQuestion(word: string, answer: string, questionType: string) {
+    this.currentHourlyQuestion = { word, answer, questionType };
   }
 
   // Method for hourly automated messages
