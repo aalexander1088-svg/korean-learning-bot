@@ -80,6 +80,19 @@ class RailwayKoreanBot {
       )
     `);
 
+    // Create personal vocabulary table
+    await this.db.exec(`
+      CREATE TABLE IF NOT EXISTS personal_vocabulary (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        korean TEXT NOT NULL,
+        english TEXT,
+        added_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+        times_practiced INTEGER DEFAULT 0,
+        last_practiced DATETIME
+      )
+    `);
+
     // Pre-load vocabulary from your PDF (extracted locally)
     await this.loadPDFVocabulary();
   }
@@ -139,9 +152,14 @@ class RailwayKoreanBot {
         `🎯 /quiz - Start interactive quiz (5 questions)\n` +
         `📖 /study - Study mode (get multiple words)\n` +
         `📊 /stats - View your learning statistics\n` +
+        `📝 /review - Review your personal vocabulary\n` +
         `🔄 /reset - Reset your progress\n` +
         `❓ /help - Show this help message\n\n` +
-        `💡 I'll send you a word every hour from 7 AM to 6 PM CST!`
+        `💡 **Learning Features:**\n` +
+        `• Send any Korean word to learn about it!\n` +
+        `• Personal vocabulary is separate from PDF words\n` +
+        `• Use /review to see your learned words\n\n` +
+        `🎯 I'll send you a word every hour from 7 AM to 6 PM CDT!`
       );
     });
 
@@ -226,6 +244,11 @@ class RailwayKoreanBot {
         `Your learning progress has been reset. ` +
         `Start fresh with /word or /quiz! 🆕`
       );
+    });
+
+    // Review personal vocabulary
+    this.bot.command('review', async (ctx) => {
+      await this.showPersonalVocabularyReview(ctx);
     });
 
     // Handle text responses
@@ -387,21 +410,27 @@ class RailwayKoreanBot {
   private async handleTextResponse(ctx: Context) {
     const userId = ctx.from!.id;
     const session = this.userSessions.get(userId);
-    const userAnswer = ctx.message && 'text' in ctx.message ? ctx.message.text.toLowerCase().trim() : '';
+    const userText = ctx.message && 'text' in ctx.message ? ctx.message.text : '';
 
-    if (!userAnswer) {
+    if (!userText) {
       return;
     }
 
-    // Handle quiz mode responses
-    if (session && session.currentWord && session.studyMode === 'quiz') {
-      await this.checkQuizAnswer(ctx, userAnswer);
+    // Check if user is in active quiz mode
+    if (session && session.studyMode === 'quiz' && session.currentWord) {
+      await this.checkQuizAnswer(ctx, userText.toLowerCase().trim());
       return;
     }
 
-    // Handle hourly quiz responses (when not in active quiz mode)
+    // Check if text contains Korean characters
+    if (this.containsKoreanText(userText)) {
+      await this.handleKoreanWordLearning(ctx, userText);
+      return;
+    }
+
+    // Handle other responses (hourly quiz, etc.)
     if (!session || session.studyMode !== 'quiz') {
-      await this.handleHourlyQuizResponse(ctx, userAnswer);
+      await this.handleHourlyQuizResponse(ctx, userText);
     }
   }
 
@@ -732,6 +761,153 @@ class RailwayKoreanBot {
   public async stop(signal: string) {
     console.log(`🛑 Stopping bot with signal: ${signal}`);
     await this.bot.stop(signal);
+  }
+
+  private containsKoreanText(text: string): boolean {
+    // Korean Unicode range: \uAC00-\uD7AF (Hangul Syllables)
+    // Also includes \u1100-\u11FF (Hangul Jamo) and \u3130-\u318F (Hangul Compatibility Jamo)
+    return /[\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/.test(text);
+  }
+
+  private extractKoreanWord(text: string): string {
+    // Extract only Korean characters, remove spaces and punctuation
+    return text.replace(/[^\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]/g, '').trim();
+  }
+
+  private async handleKoreanWordLearning(ctx: Context, koreanText: string) {
+    try {
+      const userId = ctx.from!.id;
+      const koreanWord = this.extractKoreanWord(koreanText);
+      
+      if (!koreanWord) {
+        ctx.reply('Please send a valid Korean word! 🇰🇷');
+        return;
+      }
+
+      // Generate teaching response using OpenAI
+      const teachingResponse = await this.generateKoreanTeaching(koreanWord);
+      
+      // Add to user's personal vocabulary database
+      await this.addToPersonalVocabulary(userId, koreanWord);
+      
+      // Send response
+      ctx.reply(teachingResponse, { parse_mode: 'Markdown' });
+      
+    } catch (error) {
+      console.error('Error handling Korean word learning:', error);
+      ctx.reply('Sorry, I had trouble processing that Korean word. Please try again!');
+    }
+  }
+
+  private async generateKoreanTeaching(koreanWord: string): Promise<string> {
+    try {
+      const prompt = `You are an expert Korean language teacher. For EVERY message you receive:
+
+1. **If the message is "review" or "/review":** Show the last 10 Korean words practiced in this conversation as a numbered list.
+
+2. **If the message contains Korean text:** Treat it as a Korean word to teach and respond with EXACTLY this format:
+
+🇰🇷 Korean Word Practice 🇰🇷
+### Word Presentation
+- Korean Word: [the Korean word]  
+- Primary Meaning: [English meaning]  
+- Part of Speech: [grammatical category]
+
+### Contextual Examples
+1. Beginner:  
+   - Korean: [Korean sentence]  
+   - English: [English translation]
+
+2. Beginner:  
+   - Korean: [Korean sentence]  
+   - English: [English translation]
+
+3. Intermediate:  
+   - Korean: [Korean sentence]  
+   - English: [English translation]
+
+4. Intermediate:  
+   - Korean: [Korean sentence]  
+   - English: [English translation]
+
+5. Advanced:  
+   - Korean: [Korean sentence]  
+   - English: [English translation]
+
+Remember all Korean words the user sends for future review requests. Use EXACTLY the formatting shown above - including the flag emojis, markdown headers, bullet points, and numbering. Do not deviate from this format.
+
+Korean word to teach: ${koreanWord}`;
+
+      const response = await this.openai.chat.completions.create({
+        model: 'gpt-4',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 1000,
+        temperature: 0.7
+      });
+
+      return response.choices[0]?.message?.content || 'Sorry, I could not generate a teaching response for that word.';
+      
+    } catch (error) {
+      console.error('OpenAI error in generateKoreanTeaching:', error);
+      return `🇰🇷 Korean Word Practice 🇰🇷\n\n### Word Presentation\n- Korean Word: ${koreanWord}\n- Primary Meaning: [Please check a dictionary]\n- Part of Speech: [Unknown]\n\n### Contextual Examples\n*Sorry, I couldn't generate examples right now. Please try again later.*`;
+    }
+  }
+
+  private async addToPersonalVocabulary(userId: number, koreanWord: string) {
+    try {
+      // Check if word already exists for this user
+      const existing = await this.db.get(
+        'SELECT * FROM personal_vocabulary WHERE user_id = ? AND korean = ?',
+        [userId, koreanWord]
+      );
+
+      if (existing) {
+        // Update practice count
+        await this.db.run(
+          'UPDATE personal_vocabulary SET times_practiced = times_practiced + 1, last_practiced = CURRENT_TIMESTAMP WHERE id = ?',
+          [existing.id]
+        );
+      } else {
+        // Add new word
+        await this.db.run(
+          'INSERT INTO personal_vocabulary (user_id, korean, times_practiced, last_practiced) VALUES (?, ?, 1, CURRENT_TIMESTAMP)',
+          [userId, koreanWord]
+        );
+      }
+    } catch (error) {
+      console.error('Error adding to personal vocabulary:', error);
+    }
+  }
+
+  private async showPersonalVocabularyReview(ctx: Context) {
+    try {
+      const userId = ctx.from!.id;
+      
+      const words = await this.db.all(
+        'SELECT korean, times_practiced, last_practiced FROM personal_vocabulary WHERE user_id = ? ORDER BY last_practiced DESC LIMIT 10',
+        [userId]
+      );
+
+      if (words.length === 0) {
+        ctx.reply('📚 **Personal Vocabulary Review**\n\nNo Korean words learned yet! Send me Korean words to start building your vocabulary! 🇰🇷', { parse_mode: 'Markdown' });
+        return;
+      }
+
+      let reviewMessage = '📚 **Personal Vocabulary Review**\n\n**Last 10 Korean words practiced:**\n\n';
+      
+      words.forEach((word, index) => {
+        const lastPracticed = word.last_practiced ? new Date(word.last_practiced).toLocaleDateString() : 'Unknown';
+        reviewMessage += `${index + 1}. **${word.korean}** (practiced ${word.times_practiced} times, last: ${lastPracticed})\n`;
+      });
+
+      reviewMessage += '\n💡 **Tip:** Send any Korean word to learn more about it!';
+      
+      ctx.reply(reviewMessage, { parse_mode: 'Markdown' });
+      
+    } catch (error) {
+      console.error('Error showing personal vocabulary review:', error);
+      ctx.reply('Sorry, I had trouble retrieving your vocabulary review. Please try again!');
+    }
   }
 }
 
