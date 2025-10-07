@@ -39,6 +39,11 @@ jobs:
         echo "EMAIL_PASSWORD: ${EMAIL_PASSWORD:0:5}..."
         echo "DEFAULT_EMAIL: $DEFAULT_EMAIL"
         echo "NEWS_RECIPIENT_EMAIL: $NEWS_RECIPIENT_EMAIL"
+        echo "🔧 Setting environment variables for Node.js..."
+        export EMAIL_USER="$EMAIL_USER"
+        export EMAIL_PASSWORD="$EMAIL_PASSWORD"
+        export DEFAULT_EMAIL="$DEFAULT_EMAIL"
+        export NEWS_RECIPIENT_EMAIL="$NEWS_RECIPIENT_EMAIL"
         npm run news-bot
       
     - name: Run Korean learning bot (PDF + Google Docs)

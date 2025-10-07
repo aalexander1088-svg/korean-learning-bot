@@ -3,8 +3,15 @@
 import * as dotenv from 'dotenv';
 import { NewsEmailBot } from './news-email-bot';
 
-// Load environment variables
+// Load environment variables FIRST
 dotenv.config();
+
+// Debug: Check if environment variables are loaded
+console.log('🔍 Debug: Environment variables in news-bot-runner:');
+console.log('EMAIL_USER:', process.env.EMAIL_USER ? `${process.env.EMAIL_USER.substring(0, 10)}...` : 'NOT SET');
+console.log('EMAIL_PASSWORD:', process.env.EMAIL_PASSWORD ? `${process.env.EMAIL_PASSWORD.substring(0, 5)}...` : 'NOT SET');
+console.log('DEFAULT_EMAIL:', process.env.DEFAULT_EMAIL || 'NOT SET');
+console.log('NEWS_RECIPIENT_EMAIL:', process.env.NEWS_RECIPIENT_EMAIL || 'NOT SET');
 
 class NewsBotRunner {
   private newsBot: NewsEmailBot;
