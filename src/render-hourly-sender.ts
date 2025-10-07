@@ -93,15 +93,36 @@ async function sendRenderHourlyWord() {
       exampleSentence = `Example: ${randomWord.korean}을 사용하는 문장을 만들어보세요! (Try making a sentence using ${randomWord.korean}!)`;
     }
 
-    const message = 
-      `🕐 **Hourly Korean Word from Your PDF**\n\n` +
-      `**${randomWord.korean}**\n` +
-      `📖 **Meaning:** ${randomWord.english}\n` +
-      `📊 **Difficulty:** ${randomWord.difficulty}\n\n` +
-      `💬 **Example:**\n${exampleSentence}\n\n` +
-      `🎯 Ready to practice? Type /quiz!`;
+    // Create quiz-style question (3 types: word meaning, word translation, sentence)
+    const questionTypes = ['meaning', 'word', 'sentence'];
+    const questionType = questionTypes[Math.floor(Math.random() * questionTypes.length)];
+    let quizMessage = '';
+    
+    if (questionType === 'meaning') {
+      // Show Korean word, ask for English meaning
+      quizMessage = 
+        `🕐 **Hourly Korean Quiz**\n\n` +
+        `**Question:** What does **${randomWord.korean}** mean?\n\n` +
+        `Type your answer below! 💭\n\n` +
+        `💡 *Hint: It's a ${randomWord.difficulty} level word*`;
+    } else if (questionType === 'word') {
+      // Show English word, ask for Korean translation
+      quizMessage = 
+        `🕐 **Hourly Korean Quiz**\n\n` +
+        `**Question:** What is the Korean word for **${randomWord.english}**?\n\n` +
+        `Type your answer below! 💭\n\n` +
+        `💡 *Hint: It's a ${randomWord.difficulty} level word*`;
+    } else {
+      // Show sentence, ask for translation
+      quizMessage = 
+        `🕐 **Hourly Korean Quiz**\n\n` +
+        `**Question:** What does this Korean sentence mean?\n\n` +
+        `**${exampleSentence.split('(')[0].trim()}**\n\n` +
+        `Type your answer below! 💭\n\n` +
+        `💡 *Hint: It uses the word ${randomWord.korean}*`;
+    }
 
-    await bot.telegram.sendMessage(process.env.TELEGRAM_CHAT_ID!, message, { parse_mode: 'Markdown' });
+    await bot.telegram.sendMessage(process.env.TELEGRAM_CHAT_ID!, quizMessage, { parse_mode: 'Markdown' });
     
     console.log('✅ Hourly Korean word sent successfully via Render!');
     console.log(`📝 Word sent: ${randomWord.korean} - ${randomWord.english}`);

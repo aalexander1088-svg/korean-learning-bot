@@ -40,13 +40,13 @@ jobs:
         TELEGRAM_CHAT_ID=$TELEGRAM_CHAT_ID
         OPENAI_API_KEY=$OPENAI_API_KEY
         EOF
-        echo "🚀 Running Render hourly word sender..."
+        echo "🚀 Running Render hourly quiz sender..."
         node dist/render-hourly-sender.js
         
     - name: Notify on success
       if: success()
-      run: echo "✅ Render hourly Korean word sent successfully!"
+      run: echo "✅ Render hourly Korean quiz sent successfully!"
       
     - name: Notify on failure
       if: failure()
-      run: echo "❌ Render hourly Korean word failed!"
+      run: echo "❌ Render hourly Korean quiz failed!"
