@@ -26,6 +26,21 @@ jobs:
     - name: Build project
       run: npm run build
       
+    - name: Test secrets
+      env:
+        EMAIL_USER: ${{ secrets.EMAIL_USER }}
+        EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+        DEFAULT_EMAIL: ${{ secrets.DEFAULT_EMAIL }}
+        NEWS_RECIPIENT_EMAIL: ${{ secrets.NEWS_RECIPIENT_EMAIL }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      run: |
+        echo "🔍 Testing all secrets..."
+        echo "EMAIL_USER exists: ${{ secrets.EMAIL_USER != '' }}"
+        echo "EMAIL_PASSWORD exists: ${{ secrets.EMAIL_PASSWORD != '' }}"
+        echo "DEFAULT_EMAIL exists: ${{ secrets.DEFAULT_EMAIL != '' }}"
+        echo "NEWS_RECIPIENT_EMAIL exists: ${{ secrets.NEWS_RECIPIENT_EMAIL != '' }}"
+        echo "OPENAI_API_KEY exists: ${{ secrets.OPENAI_API_KEY != '' }}"
+      
     - name: Run news bot
       env:
         EMAIL_USER: ${{ secrets.EMAIL_USER }}
