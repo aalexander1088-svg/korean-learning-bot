@@ -834,6 +834,12 @@ class RailwayKoreanBot {
    - Korean: [Korean sentence]  
    - English: [English translation]
 
+**IMPORTANT:** Use CASUAL, EVERYDAY Korean that native speakers actually use in daily conversation. Avoid formal textbook language. Use:
+- Casual verb endings (-어요, -아요 instead of -습니다)
+- Natural expressions that friends would use
+- Conversational tone, not academic tone
+- Real situations people encounter daily
+
 Remember all Korean words the user sends for future review requests. Use EXACTLY the formatting shown above - including the flag emojis, markdown headers, bullet points, and numbering. Do not deviate from this format.
 
 Korean word to teach: ${koreanWord}`;
