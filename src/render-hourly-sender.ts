@@ -103,23 +103,20 @@ async function sendRenderHourlyWord() {
       quizMessage = 
         `🕐 **Hourly Korean Quiz**\n\n` +
         `**Question:** What does **${randomWord.korean}** mean?\n\n` +
-        `Type your answer below! 💭\n\n` +
-        `💡 *Hint: It's a ${randomWord.difficulty} level word*`;
+        `Type your answer below! 💭`;
     } else if (questionType === 'word') {
       // Show English word, ask for Korean translation
       quizMessage = 
         `🕐 **Hourly Korean Quiz**\n\n` +
         `**Question:** What is the Korean word for **${randomWord.english}**?\n\n` +
-        `Type your answer below! 💭\n\n` +
-        `💡 *Hint: It's a ${randomWord.difficulty} level word*`;
+        `Type your answer below! 💭`;
     } else {
       // Show sentence, ask for translation
       quizMessage = 
         `🕐 **Hourly Korean Quiz**\n\n` +
         `**Question:** What does this Korean sentence mean?\n\n` +
         `**${exampleSentence.split('(')[0].trim()}**\n\n` +
-        `Type your answer below! 💭\n\n` +
-        `💡 *Hint: It uses the word ${randomWord.korean}*`;
+        `Type your answer below! 💭`;
     }
 
     await bot.telegram.sendMessage(process.env.TELEGRAM_CHAT_ID!, quizMessage, { parse_mode: 'Markdown' });
