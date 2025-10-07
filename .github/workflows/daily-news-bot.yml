@@ -35,12 +35,23 @@ jobs:
         NODE_OPTIONS: "--no-experimental-fetch"
       run: |
         echo "🔍 Debug: Checking environment variables..."
+        echo "EMAIL_USER length: ${#EMAIL_USER}"
+        echo "EMAIL_PASSWORD length: ${#EMAIL_PASSWORD}"
+        echo "DEFAULT_EMAIL length: ${#DEFAULT_EMAIL}"
+        echo "NEWS_RECIPIENT_EMAIL length: ${#NEWS_RECIPIENT_EMAIL}"
         echo "EMAIL_USER: ${EMAIL_USER:0:10}..." 
         echo "EMAIL_PASSWORD: ${EMAIL_PASSWORD:0:5}..."
         echo "DEFAULT_EMAIL: $DEFAULT_EMAIL"
         echo "NEWS_RECIPIENT_EMAIL: $NEWS_RECIPIENT_EMAIL"
-        echo "🚀 Running news bot with environment variables..."
-        EMAIL_USER="$EMAIL_USER" EMAIL_PASSWORD="$EMAIL_PASSWORD" DEFAULT_EMAIL="$DEFAULT_EMAIL" NEWS_RECIPIENT_EMAIL="$NEWS_RECIPIENT_EMAIL" node dist/news-bot-runner.js
+        echo "🔧 Creating .env file for Node.js..."
+        cat > .env << EOF
+        EMAIL_USER=$EMAIL_USER
+        EMAIL_PASSWORD=$EMAIL_PASSWORD
+        DEFAULT_EMAIL=$DEFAULT_EMAIL
+        NEWS_RECIPIENT_EMAIL=$NEWS_RECIPIENT_EMAIL
+        EOF
+        echo "🚀 Running news bot..."
+        node dist/news-bot-runner.js
       
     - name: Run Korean learning bot (PDF + Google Docs)
       env:
