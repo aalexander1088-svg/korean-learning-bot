@@ -1,0 +1,36 @@
+# Korean Learning Email Script Environment Variables
+
+# OpenAI API Configuration
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Email Configuration
+EMAIL_USER=aalexander1088@gmail.com
+EMAIL_PASSWORD=your_email_app_password_here
+
+# Optional: Email Service Configuration (defaults to Gmail)
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_SECURE=false
+
+# Optional: Default recipient email (used when no email argument is provided)
+DEFAULT_EMAIL=aalexander1088@gmail.com
+
+# News Bot Configuration
+# News digest will be sent to this email (defaults to DEFAULT_EMAIL if not set)
+NEWS_RECIPIENT_EMAIL=aalexander1088@gmail.com
+
+# Optional: Customize news sources (comma-separated list)
+# Available sources: Zero Hedge, VT Foreign Policy, Korea Times
+# NEWS_SOURCES=Zero Hedge,VT Foreign Policy,Korea Times
+
+# Optional: Number of headlines per source (default: 5)
+# NEWS_HEADLINES_PER_SOURCE=5
+
+# Google Docs Configuration for Korean Learning
+# Get your Google Doc ID from the URL: https://docs.google.com/document/d/DOCUMENT_ID/edit
+GOOGLE_DOC_ID=1x0ZQkc4fNTKB8H-P_cYQQtv85GCNrytfENizgmC3peQ
+
+# Google Service Account Credentials (for Google Docs API access)
+# You need to create a service account in Google Cloud Console
+GOOGLE_SERVICE_ACCOUNT_EMAIL=your_service_account@project.iam.gserviceaccount.com
+GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYOUR_PRIVATE_KEY_HERE\n-----END PRIVATE KEY-----\n"

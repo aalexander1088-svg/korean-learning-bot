@@ -1,0 +1,52 @@
+[
+  {
+    "title": "Park Ranger - Entry Level",
+    "company": "Hillsborough County Parks",
+    "location": "Tampa, FL",
+    "description": "Assist with park maintenance, visitor services, and environmental education programs. Great opportunity for outdoor enthusiasts!",
+    "url": "https://www.hillsboroughcounty.org/jobs",
+    "date_posted": "Recent",
+    "experience_level": null,
+    "source": "Hillsborough County Parks"
+  },
+  {
+    "title": "Environmental Specialist",
+    "company": "Pinellas County",
+    "location": "St. Petersburg, FL",
+    "description": "Work on environmental conservation projects and outdoor education programs in beautiful Pinellas County parks.",
+    "url": "https://www.pinellas.gov/jobs",
+    "date_posted": "Recent",
+    "experience_level": null,
+    "source": "Pinellas County Parks"
+  },
+  {
+    "title": "Recreation Coordinator",
+    "company": "City of Tampa",
+    "location": "Tampa, FL",
+    "description": "Plan and coordinate outdoor recreational activities and nature programs for city residents.",
+    "url": "https://www.tampa.gov/jobs",
+    "date_posted": "Recent",
+    "experience_level": null,
+    "source": "Tampa Parks & Recreation"
+  },
+  {
+    "title": "Wildlife Biologist Assistant",
+    "company": "Florida State Parks",
+    "location": "Tampa Bay Area, FL",
+    "description": "Support wildlife research and conservation efforts in state parks throughout the Tampa Bay region.",
+    "url": "https://www.floridastateparks.org/jobs",
+    "date_posted": "Recent",
+    "experience_level": null,
+    "source": "Florida State Parks"
+  },
+  {
+    "title": "Outdoor Education Instructor",
+    "company": "Tampa Bay Nature Center",
+    "location": "Tampa, FL",
+    "description": "Lead educational programs about local wildlife and ecosystems for school groups and families.",
+    "url": "https://example.com/apply",
+    "date_posted": "Recent",
+    "experience_level": null,
+    "source": "Indeed.com"
+  }
+]

@@ -1,0 +1,85 @@
+name: Korean Learning Daily Email
+
+on:
+  schedule:
+    # Run daily at 5:00 AM Central Time (11:00 AM UTC)
+    - cron: '0 11 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  send-korean-email:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build TypeScript
+      run: npm run build
+      
+    - name: Create sample Korean content
+      run: |
+        mkdir -p sample-content
+        cat > sample-content/daily-korean.txt << 'EOF'
+        한국어 수업 노트 - Daily Review
+        
+        오늘은 새로운 단어들을 배웠어요.
+        
+        예전에는 공사장에서 일했어요. 현재는 한국어를 배우고 있어요.
+        드디어 한국어를 잘하게 되었어요.
+        
+        그림을 그리는 것을 좋아해요. 화가가 되고 싶어요.
+        벽에 그림을 걸어요.
+        
+        새로운 단어들:
+        - 달리기 (running)
+        - 그림 (painting) 
+        - 화가 (painter)
+        - 벽 (wall)
+        - 걸다 (to hang)
+        - 복잡한 (complicated)
+        - 단순하다 (to be simple)
+        - 흡수하다 (to absorb)
+        - 충격 (shock)
+        - 영향 (influence)
+        
+        문법 패턴:
+        - V-고 싶어요 (want to do)
+        - N-을/를 좋아해요 (like to do)
+        - V-어/아 있다 (ongoing action)
+        
+        예문:
+        - 그림을 그리는 것을 좋아해요.
+        - 화가가 되고 싶어요.
+        - 벽에 그림을 걸어요.
+        - 고양이가 소파에 앉아 있어요.
+        EOF
+        
+    - name: Send Korean Learning Email
+      env:
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        EMAIL_USER: ${{ secrets.EMAIL_USER }}
+        EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+        EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
+        EMAIL_PORT: ${{ secrets.EMAIL_PORT }}
+      run: |
+        node dist/reliable-scheduler.js
+        
+    - name: Send News Email
+      env:
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        EMAIL_USER: ${{ secrets.EMAIL_USER }}
+        EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+        EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
+        EMAIL_PORT: ${{ secrets.EMAIL_PORT }}
+      run: |
+        node dist/news-bot-runner.js

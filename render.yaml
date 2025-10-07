@@ -1,0 +1,30 @@
+version: 2
+services:
+  news-bot:
+    type: worker
+    name: korean-learning-bot
+    env: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASSWORD
+        sync: false
+      - key: DEFAULT_EMAIL
+        sync: false
+      - key: NEWS_RECIPIENT_EMAIL
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: EMAIL_HOST
+        value: smtp.gmail.com
+      - key: EMAIL_PORT
+        value: 587
+      - key: EMAIL_SECURE
+        value: false
+
+
+
+

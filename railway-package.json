@@ -1,0 +1,56 @@
+{
+  "name": "korean-learning-email-script",
+  "version": "1.0.0",
+  "description": "A Node.js TypeScript script that reads Korean PDFs, analyzes them with AI, and emails practice exercises",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "node dist/scheduler.js",
+    "build": "tsc",
+    "dev": "ts-node src/index.ts",
+    "clean": "rimraf dist",
+    "schedule": "node dist/scheduler.js",
+    "review": "node dist/review.js",
+    "chat": "node dist/chat-server.js",
+    "ai-practice": "node dist/ai-practice.js",
+    "demo": "node dist/demo.js",
+    "simple-chat": "node dist/simple-chat.js",
+    "news-bot": "node dist/news-bot-runner.js"
+  },
+  "keywords": ["korean", "learning", "pdf", "ai", "email", "typescript"],
+  "author": "aalexander1088@gmail.com",
+  "license": "MIT",
+  "dependencies": {
+    "pdf-parse": "^1.1.1",
+    "openai": "^4.20.1",
+    "nodemailer": "^6.9.7",
+    "dotenv": "^16.3.1",
+    "node-cron": "^3.0.3",
+    "sqlite3": "^5.1.6",
+    "express": "^4.18.2",
+    "socket.io": "^4.7.4",
+    "multer": "^1.4.5-lts.1",
+    "axios": "^1.6.0",
+    "cheerio": "^1.0.0-rc.12",
+    "xml2js": "^0.6.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.10",
+    "@types/pdf-parse": "^1.1.4",
+    "@types/nodemailer": "^6.4.14",
+    "@types/node-cron": "^3.0.11",
+    "@types/express": "^4.17.21",
+    "@types/multer": "^1.4.11",
+    "@types/cheerio": "^0.22.31",
+    "@types/xml2js": "^0.4.14",
+    "typescript": "^5.2.2",
+    "ts-node": "^10.9.1",
+    "rimraf": "^5.0.5"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
+
+
+
+
