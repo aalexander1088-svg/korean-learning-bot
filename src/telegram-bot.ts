@@ -3,7 +3,7 @@
 import { Telegraf, Context } from 'telegraf';
 import * as dotenv from 'dotenv';
 import * as sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
+import { open, Database } from 'sqlite';
 import { OpenAI } from 'openai';
 
 dotenv.config();
@@ -29,7 +29,7 @@ interface UserSession {
 
 class KoreanTelegramBot {
   private bot: Telegraf;
-  private db: any;
+  private db!: Database;
   private openai: OpenAI;
   private userSessions: Map<number, UserSession> = new Map();
 
@@ -296,7 +296,7 @@ class KoreanTelegramBot {
   private async handleTextResponse(ctx: Context) {
     const userId = ctx.from!.id;
     const session = this.userSessions.get(userId);
-    const userAnswer = ctx.message?.text?.toLowerCase().trim();
+    const userAnswer = ctx.message && 'text' in ctx.message ? ctx.message.text.toLowerCase().trim() : '';
 
     if (!session || !session.currentWord || !userAnswer) {
       return;
@@ -428,7 +428,7 @@ class KoreanTelegramBot {
     }
   }
 
-  private async updateWordStats(wordId: number, correct?: boolean) {
+  private async updateWordStats(wordId: number, correct?: boolean): Promise<void> {
     const now = new Date().toISOString();
     
     if (correct !== undefined) {

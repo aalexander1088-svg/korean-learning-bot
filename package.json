@@ -25,6 +25,7 @@
     "cloud-schedule": "ts-node src/cloud-scheduler.ts",
     "news-bot": "node dist/news-bot-runner.js",
     "telegram-bot": "node dist/telegram-bot-runner.js",
+    "get-chat-id": "ts-node src/get-chat-id.ts",
     "send-hourly-word": "node dist/send-hourly-word.js",
     "test-google-docs": "ts-node src/test-google-docs.ts",
     "extract-json": "ts-node src/extract-json-info.ts",
@@ -52,6 +53,7 @@
     "openai": "^4.20.1",
     "pdf-parse": "^1.1.1",
     "socket.io": "^4.7.4",
+    "sqlite": "^5.1.1",
     "sqlite3": "^5.1.6",
     "telegraf": "^4.15.0",
     "xml2js": "^0.6.2"
