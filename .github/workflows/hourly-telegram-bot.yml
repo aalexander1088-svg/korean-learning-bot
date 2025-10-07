@@ -1,0 +1,54 @@
+name: Hourly Korean Vocabulary Bot
+
+on:
+  schedule:
+    # Run every hour at minute 0
+    - cron: '0 * * * *'
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  send-korean-word:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build project
+      run: npm run build
+      
+    - name: Send Hourly Korean Word
+      env:
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        DATABASE_PATH: korean_learning.db
+        NODE_OPTIONS: "--no-experimental-fetch"
+      run: |
+        echo "🕐 Sending hourly Korean vocabulary word..."
+        echo "🔧 Creating .env file for Node.js..."
+        cat > .env << EOF
+        TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN
+        TELEGRAM_CHAT_ID=$TELEGRAM_CHAT_ID
+        OPENAI_API_KEY=$OPENAI_API_KEY
+        DATABASE_PATH=korean_learning.db
+        EOF
+        echo "🚀 Running hourly word sender..."
+        npm run send-hourly-word
+        
+    - name: Notify on success
+      if: success()
+      run: echo "✅ Hourly Korean word sent successfully!"
+      
+    - name: Notify on failure
+      if: failure()
+      run: echo "❌ Failed to send hourly Korean word!"

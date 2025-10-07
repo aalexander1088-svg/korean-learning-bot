@@ -24,6 +24,8 @@
     "reliable-schedule": "ts-node src/reliable-scheduler.ts",
     "cloud-schedule": "ts-node src/cloud-scheduler.ts",
     "news-bot": "node dist/news-bot-runner.js",
+    "telegram-bot": "node dist/telegram-bot-runner.js",
+    "send-hourly-word": "node dist/send-hourly-word.js",
     "test-google-docs": "ts-node src/test-google-docs.ts",
     "extract-json": "ts-node src/extract-json-info.ts",
     "upload-pdf": "ts-node src/pdf-uploader.ts"
@@ -51,6 +53,7 @@
     "pdf-parse": "^1.1.1",
     "socket.io": "^4.7.4",
     "sqlite3": "^5.1.6",
+    "telegraf": "^4.15.0",
     "xml2js": "^0.6.2"
   },
   "devDependencies": {
