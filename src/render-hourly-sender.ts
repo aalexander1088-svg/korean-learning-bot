@@ -60,37 +60,36 @@ async function sendRenderHourlyWord() {
       exampleSentence = `Example: ${randomWord.korean}을 사용하는 문장을 만들어보세요! (Try making a sentence using ${randomWord.korean}!)`;
     }
 
-    // Create quiz-style question (3 types: word meaning, word translation, sentence)
+    // Create quiz-style question with immediate answer and example
     const questionTypes = ['meaning', 'word', 'sentence'];
     const questionType = questionTypes[Math.floor(Math.random() * questionTypes.length)];
     let quizMessage = '';
-    let correctAnswer = '';
     
     if (questionType === 'meaning') {
       // Show Korean word, ask for English meaning
-      correctAnswer = randomWord.english;
       quizMessage = 
         `🕐 **Hourly Korean Quiz**\n\n` +
         `**Question:** What does **${randomWord.korean}** mean?\n\n` +
-        `Type your answer below! 💭\n\n` +
-        `💡 *Answer: ${correctAnswer}*`;
+        `**Answer:** ${randomWord.english}\n\n` +
+        `💬 **Example:** ${exampleSentence}\n\n` +
+        `🎯 Try to remember this word! Use /quiz for interactive practice!`;
     } else if (questionType === 'word') {
       // Show English word, ask for Korean translation
-      correctAnswer = randomWord.korean;
       quizMessage = 
         `🕐 **Hourly Korean Quiz**\n\n` +
         `**Question:** What is the Korean word for **${randomWord.english}**?\n\n` +
-        `Type your answer below! 💭\n\n` +
-        `💡 *Answer: ${correctAnswer}*`;
+        `**Answer:** ${randomWord.korean}\n\n` +
+        `💬 **Example:** ${exampleSentence}\n\n` +
+        `🎯 Try to remember this word! Use /quiz for interactive practice!`;
     } else {
       // Show sentence, ask for translation
-      correctAnswer = exampleSentence.split('(')[1]?.split(')')[0]?.trim() || 'See the sentence above';
+      const sentenceAnswer = exampleSentence.split('(')[1]?.split(')')[0]?.trim() || 'See the sentence above';
       quizMessage = 
         `🕐 **Hourly Korean Quiz**\n\n` +
         `**Question:** What does this Korean sentence mean?\n\n` +
         `**${exampleSentence.split('(')[0].trim()}**\n\n` +
-        `Type your answer below! 💭\n\n` +
-        `💡 *Answer: ${correctAnswer}*`;
+        `**Answer:** ${sentenceAnswer}\n\n` +
+        `🎯 Try to remember this sentence! Use /quiz for interactive practice!`;
     }
 
     await bot.telegram.sendMessage(process.env.TELEGRAM_CHAT_ID!, quizMessage, { parse_mode: 'Markdown' });
@@ -98,7 +97,6 @@ async function sendRenderHourlyWord() {
     console.log('✅ Hourly Korean quiz question sent successfully!');
     console.log(`📝 Question type: ${questionType}`);
     console.log(`📝 Word: ${randomWord.korean} - ${randomWord.english}`);
-    console.log(`📝 Correct answer: ${correctAnswer}`);
 
   } catch (error) {
     console.error('❌ Failed to send hourly word:', error);

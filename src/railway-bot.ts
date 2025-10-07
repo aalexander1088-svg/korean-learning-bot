@@ -354,61 +354,22 @@ class RailwayKoreanBot {
 
   private async handleHourlyQuizResponse(ctx: Context, userAnswer: string) {
     try {
-      // Check if there's a current hourly question to respond to
-      if (this.currentHourlyQuestion) {
-        const { word, answer, questionType } = this.currentHourlyQuestion;
-        
-        // Check if the answer is correct
-        const isCorrect = userAnswer.toLowerCase().trim() === answer.toLowerCase().trim();
-        
-        if (isCorrect) {
-          // Generate example sentence for the word
-          const wordFromDB = await this.db.get('SELECT * FROM vocabulary WHERE korean = ? OR english = ?', [word, word]);
-          let exampleSentence = '';
-          
-          if (wordFromDB) {
-            exampleSentence = await this.generateExampleSentence(wordFromDB);
-          }
-          
-          ctx.reply(
-            `✅ **Correct!** Great job!\n\n` +
-            `**${word}** means **${answer}**\n\n` +
-            `💬 **Example:** ${exampleSentence}\n\n` +
-            `Keep practicing! 🎯`,
-            { parse_mode: 'Markdown' }
-          );
-        } else {
-          // Generate example sentence for the word
-          const wordFromDB = await this.db.get('SELECT * FROM vocabulary WHERE korean = ? OR english = ?', [word, word]);
-          let exampleSentence = '';
-          
-          if (wordFromDB) {
-            exampleSentence = await this.generateExampleSentence(wordFromDB);
-          }
-          
-          ctx.reply(
-            `❌ **Not quite right.**\n\n` +
-            `**${word}** means **${answer}**\n\n` +
-            `💬 **Example:** ${exampleSentence}\n\n` +
-            `Keep practicing! 🎯`,
-            { parse_mode: 'Markdown' }
-          );
-        }
-        
-        // Clear the current question
-        this.currentHourlyQuestion = null;
-      } else {
-        // No current question, provide general encouragement
-        const responses = [
-          "Good try! 💪 Keep practicing with /quiz for interactive questions!",
-          "Nice attempt! 🎯 Try /quiz for more practice questions!",
-          "Keep learning! 📚 Use /quiz for interactive practice!",
-          "Great effort! 🌟 Practice more with /quiz!"
-        ];
-        
-        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-        ctx.reply(randomResponse);
-      }
+      // Try to find the word that was asked about by looking at recent messages
+      // This is a simple approach - in a real implementation, you'd store question context
+      
+      // For now, let's provide a helpful response that encourages using /quiz
+      // where the bot can properly track the question context
+      
+      const responses = [
+        "Good try! 💪 For interactive quizzes with proper feedback, use /quiz!",
+        "Nice attempt! 🎯 Try /quiz for questions with correct answers and examples!",
+        "Keep learning! 📚 Use /quiz for full interactive practice!",
+        "Great effort! 🌟 Practice more with /quiz for detailed feedback!"
+      ];
+      
+      const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+      ctx.reply(randomResponse);
+      
     } catch (error) {
       console.error('Error in handleHourlyQuizResponse:', error);
       // Simple fallback response

@@ -60,7 +60,7 @@ async function testQuizQuestion() {
       exampleSentence = `Example: ${randomWord.korean}을 사용하는 문장을 만들어보세요! (Try making a sentence using ${randomWord.korean}!)`;
     }
 
-    // Create quiz-style question (3 types: word meaning, word translation, sentence)
+    // Create quiz-style question with immediate answer and example
     const questionTypes = ['meaning', 'word', 'sentence'];
     const questionType = questionTypes[Math.floor(Math.random() * questionTypes.length)];
     let quizMessage = '';
@@ -70,20 +70,26 @@ async function testQuizQuestion() {
       quizMessage = 
         `🧪 **Test Quiz Question**\n\n` +
         `**Question:** What does **${randomWord.korean}** mean?\n\n` +
-        `Type your answer below! 💭`;
+        `**Answer:** ${randomWord.english}\n\n` +
+        `💬 **Example:** ${exampleSentence}\n\n` +
+        `🎯 Try to remember this word! Use /quiz for interactive practice!`;
     } else if (questionType === 'word') {
       // Show English word, ask for Korean translation
       quizMessage = 
         `🧪 **Test Quiz Question**\n\n` +
         `**Question:** What is the Korean word for **${randomWord.english}**?\n\n` +
-        `Type your answer below! 💭`;
+        `**Answer:** ${randomWord.korean}\n\n` +
+        `💬 **Example:** ${exampleSentence}\n\n` +
+        `🎯 Try to remember this word! Use /quiz for interactive practice!`;
     } else {
       // Show sentence, ask for translation
+      const sentenceAnswer = exampleSentence.split('(')[1]?.split(')')[0]?.trim() || 'See the sentence above';
       quizMessage = 
         `🧪 **Test Quiz Question**\n\n` +
         `**Question:** What does this Korean sentence mean?\n\n` +
         `**${exampleSentence.split('(')[0].trim()}**\n\n` +
-        `Type your answer below! 💭`;
+        `**Answer:** ${sentenceAnswer}\n\n` +
+        `🎯 Try to remember this sentence! Use /quiz for interactive practice!`;
     }
 
     await bot.telegram.sendMessage(process.env.TELEGRAM_CHAT_ID!, quizMessage, { parse_mode: 'Markdown' });
