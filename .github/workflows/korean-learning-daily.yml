@@ -68,9 +68,10 @@ jobs:
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         EMAIL_USER: ${{ secrets.EMAIL_USER }}
-        EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
-        EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
-        EMAIL_PORT: ${{ secrets.EMAIL_PORT }}
+        EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+        DEFAULT_EMAIL: ${{ secrets.DEFAULT_EMAIL }}
+        NEWS_RECIPIENT_EMAIL: ${{ secrets.NEWS_RECIPIENT_EMAIL }}
+        GITHUB_ACTIONS: "true"
       run: |
         node dist/reliable-scheduler.js
         
@@ -78,8 +79,8 @@ jobs:
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         EMAIL_USER: ${{ secrets.EMAIL_USER }}
-        EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
-        EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
-        EMAIL_PORT: ${{ secrets.EMAIL_PORT }}
+        EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+        DEFAULT_EMAIL: ${{ secrets.DEFAULT_EMAIL }}
+        NEWS_RECIPIENT_EMAIL: ${{ secrets.NEWS_RECIPIENT_EMAIL }}
       run: |
         node dist/news-bot-runner.js
