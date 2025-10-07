@@ -25,6 +25,8 @@ interface UserSession {
   studyMode: 'quick' | 'study' | 'quiz';
   quizScore: number;
   totalQuestions: number;
+  currentQuestionNumber: number;
+  wrongAnswers: Array<{word: DatabaseKoreanWord, userAnswer: string}>;
 }
 
 class RailwayKoreanBot {
@@ -108,7 +110,9 @@ class RailwayKoreanBot {
         userId,
         studyMode: 'quick',
         quizScore: 0,
-        totalQuestions: 0
+        totalQuestions: 0,
+        currentQuestionNumber: 0,
+        wrongAnswers: []
       });
 
       ctx.reply(
@@ -145,26 +149,29 @@ class RailwayKoreanBot {
     // Start quiz
     this.bot.command('quiz', async (ctx) => {
       const userId = ctx.from!.id;
-      const session = this.userSessions.get(userId) || {
+      const session: UserSession = {
         userId,
         studyMode: 'quiz',
         quizScore: 0,
-        totalQuestions: 0
+        totalQuestions: 5,
+        currentQuestionNumber: 1,
+        wrongAnswers: []
       };
       
-      session.studyMode = 'quiz';
-      session.quizScore = 0;
-      session.totalQuestions = 0;
       this.userSessions.set(userId, session);
 
       ctx.reply(
-        `🎯 Quiz Mode Started!\n\n` +
-        `I'll ask you 5 questions about Korean words from your PDF. ` +
-        `Answer correctly to improve your score!\n\n` +
-        `Let's begin! 🚀`
+        `🎯 **Quiz Mode Started!**\n\n` +
+        `I'll ask you 5 questions about Korean words from your PDF.\n\n` +
+        `**How it works:**\n` +
+        `• Answer correctly: ✅ +1 point\n` +
+        `• Answer wrong: ❌ +0 points\n` +
+        `• Type "idk" or "skip": 💭 +0 points\n\n` +
+        `Let's begin! 🚀`,
+        { parse_mode: 'Markdown' }
       );
 
-      await this.sendQuizQuestion(ctx);
+      setTimeout(() => this.sendQuizQuestion(ctx), 1000);
     });
 
     // Study mode
@@ -174,7 +181,9 @@ class RailwayKoreanBot {
         userId,
         studyMode: 'study',
         quizScore: 0,
-        totalQuestions: 0
+        totalQuestions: 0,
+        currentQuestionNumber: 0,
+        wrongAnswers: []
       };
       
       session.studyMode = 'study';
@@ -291,7 +300,7 @@ class RailwayKoreanBot {
         return;
       }
 
-      if (session.totalQuestions >= 5) {
+      if (session.currentQuestionNumber > session.totalQuestions) {
         await this.endQuiz(ctx);
         return;
       }
@@ -303,7 +312,6 @@ class RailwayKoreanBot {
       }
 
       session.currentWord = word;
-      session.totalQuestions++;
       this.userSessions.set(userId, session);
 
       // Create quiz question
@@ -311,16 +319,18 @@ class RailwayKoreanBot {
       
       if (questionType === 'meaning') {
         ctx.reply(
-          `🎯 **Quiz Question ${session.totalQuestions}/5**\n\n` +
+          `🎯 **Quiz Question ${session.currentQuestionNumber}/5**\n\n` +
           `What does **${word.korean}** mean?\n\n` +
-          `Type your answer below! 💭`,
+          `Type your answer below! 💭\n` +
+          `*Tip: Type "idk" or "skip" if you don't know*`,
           { parse_mode: 'Markdown' }
         );
       } else {
         ctx.reply(
-          `🎯 **Quiz Question ${session.totalQuestions}/5**\n\n` +
+          `🎯 **Quiz Question ${session.currentQuestionNumber}/5**\n\n` +
           `What is the Korean word for **${word.english}**?\n\n` +
-          `Type your answer below! 💭`,
+          `Type your answer below! 💭\n` +
+          `*Tip: Type "idk" or "skip" if you don't know*`,
           { parse_mode: 'Markdown' }
         );
       }
@@ -387,86 +397,170 @@ class RailwayKoreanBot {
       }
 
       const word = session.currentWord;
-      const correctAnswer = word.english.toLowerCase();
-      const koreanAnswer = word.korean.toLowerCase();
-
-      let isCorrect = false;
-      let feedback = '';
-
-      // Check if answer matches English meaning or Korean word
-      if (userAnswer === correctAnswer || userAnswer === koreanAnswer) {
-        isCorrect = true;
-        session.quizScore++;
-        await this.updateWordStats(word.id, true);
-        
-        // Generate example sentence for correct answer
-        const exampleSentence = await this.generateExampleSentence(word);
-        
-        feedback = `✅ **Correct!** Great job!\n\n` +
-          `💬 **Example:** ${exampleSentence}\n\n`;
-      } else {
-        await this.updateWordStats(word.id, false);
-        
-        // Generate example sentence for incorrect answer
-        const exampleSentence = await this.generateExampleSentence(word);
-        
-        feedback = `❌ **Not quite right.**\n\n` +
-          `The correct answer is: **${word.korean}** - ${word.english}\n\n` +
-          `💬 **Example:** ${exampleSentence}\n\n`;
+      
+      // Handle skip/idk responses
+      if (userAnswer === 'idk' || userAnswer === 'skip' || userAnswer === 'i don\'t know') {
+        await this.handleSkipAnswer(ctx, word);
+        return;
       }
 
-      feedback += `📊 **Score:** ${session.quizScore}/${session.totalQuestions}\n\n`;
-
-      if (session.totalQuestions < 5) {
-        feedback += `Next question coming up... 🎯`;
+      // Check if answer is correct (handle both Korean and English answers)
+      const isCorrect = this.validateAnswer(userAnswer, word);
+      
+      if (isCorrect) {
+        await this.handleCorrectAnswer(ctx, word);
       } else {
-        feedback += `🎉 **Quiz Complete!** Final score: ${session.quizScore}/5\n\n` +
-          `Type /quiz to try again or /word for a random word!`;
+        await this.handleIncorrectAnswer(ctx, word, userAnswer);
       }
 
-      ctx.reply(feedback, { parse_mode: 'Markdown' });
-
-      // Clear current word and continue quiz
+      // Move to next question
+      session.currentQuestionNumber++;
       session.currentWord = undefined;
       this.userSessions.set(userId, session);
 
-      if (session.totalQuestions < 5) {
+      if (session.currentQuestionNumber <= session.totalQuestions) {
         setTimeout(() => this.sendQuizQuestion(ctx), 2000);
+      } else {
+        await this.endQuiz(ctx);
       }
+
     } catch (error) {
       console.error('Error in checkQuizAnswer:', error);
       ctx.reply('Sorry, I had trouble checking your answer. Please try again!');
     }
   }
 
+  private validateAnswer(userAnswer: string, word: DatabaseKoreanWord): boolean {
+    const normalizedUserAnswer = userAnswer.toLowerCase().trim();
+    const correctEnglish = word.english.toLowerCase().trim();
+    const correctKorean = word.korean.toLowerCase().trim();
+    
+    // Direct match
+    if (normalizedUserAnswer === correctEnglish || normalizedUserAnswer === correctKorean) {
+      return true;
+    }
+    
+    // Handle common variations
+    const englishVariations = [
+      correctEnglish,
+      correctEnglish.replace(/^to /, ''), // Remove "to " prefix
+      correctEnglish.replace(/^the /, ''), // Remove "the " prefix
+      correctEnglish.replace(/^a /, ''),   // Remove "a " prefix
+      correctEnglish.replace(/^an /, ''),  // Remove "an " prefix
+    ];
+    
+    return englishVariations.includes(normalizedUserAnswer);
+  }
+
+  private async handleCorrectAnswer(ctx: Context, word: DatabaseKoreanWord) {
+    const userId = ctx.from!.id;
+    const session = this.userSessions.get(userId)!;
+    
+    session.quizScore++;
+    await this.updateWordStats(word.id, true);
+    
+    const exampleSentence = await this.generateExampleSentence(word);
+    
+    const feedback = 
+      `✅ **Correct!** Great job!\n\n` +
+      `**${word.korean}** means **${word.english}**\n\n` +
+      `💬 **Example:** ${exampleSentence}\n\n` +
+      `📊 **Score:** ${session.quizScore}/${session.currentQuestionNumber}`;
+    
+    ctx.reply(feedback, { parse_mode: 'Markdown' });
+  }
+
+  private async handleIncorrectAnswer(ctx: Context, word: DatabaseKoreanWord, userAnswer: string) {
+    const userId = ctx.from!.id;
+    const session = this.userSessions.get(userId)!;
+    
+    await this.updateWordStats(word.id, false);
+    
+    // Store wrong answer for review
+    session.wrongAnswers.push({ word, userAnswer });
+    
+    const exampleSentence = await this.generateExampleSentence(word);
+    
+    const feedback = 
+      `❌ **Not quite right.**\n\n` +
+      `**Your answer:** "${userAnswer}"\n` +
+      `**Correct answer:** **${word.korean}** - ${word.english}\n\n` +
+      `💡 **Tip:** ${this.getHelpfulTip(word)}\n\n` +
+      `💬 **Example:** ${exampleSentence}\n\n` +
+      `📊 **Score:** ${session.quizScore}/${session.currentQuestionNumber}`;
+    
+    ctx.reply(feedback, { parse_mode: 'Markdown' });
+  }
+
+  private async handleSkipAnswer(ctx: Context, word: DatabaseKoreanWord) {
+    const userId = ctx.from!.id;
+    const session = this.userSessions.get(userId)!;
+    
+    // Store as wrong answer for review
+    session.wrongAnswers.push({ word, userAnswer: 'skipped' });
+    
+    const exampleSentence = await this.generateExampleSentence(word);
+    
+    const feedback = 
+      `💭 **Skipped - Here's the answer!**\n\n` +
+      `**${word.korean}** means **${word.english}**\n\n` +
+      `💬 **Example:** ${exampleSentence}\n\n` +
+      `📊 **Score:** ${session.quizScore}/${session.currentQuestionNumber}`;
+    
+    ctx.reply(feedback, { parse_mode: 'Markdown' });
+  }
+
+  private getHelpfulTip(word: DatabaseKoreanWord): string {
+    const tips = [
+      `Try breaking down **${word.korean}** into smaller parts`,
+      `Think about the context where you might use **${word.korean}**`,
+      `Remember that **${word.korean}** is a ${word.difficulty} level word`,
+      `Practice writing **${word.korean}** a few times`,
+      `Try to make a sentence with **${word.korean}**`
+    ];
+    
+    return tips[Math.floor(Math.random() * tips.length)];
+  }
+
   private async endQuiz(ctx: Context) {
     const userId = ctx.from!.id;
     const session = this.userSessions.get(userId);
     
-    if (!session) return;
-
-    const percentage = Math.round((session.quizScore / session.totalQuestions) * 100);
-    let message = `🎉 **Quiz Complete!**\n\n` +
-      `📊 **Final Score:** ${session.quizScore}/${session.totalQuestions} (${percentage}%)\n\n`;
-
-    if (percentage >= 80) {
-      message += `🌟 **Excellent!** You're doing great with Korean vocabulary!`;
-    } else if (percentage >= 60) {
-      message += `👍 **Good job!** Keep practicing to improve!`;
-    } else {
-      message += `💪 **Keep studying!** Practice makes perfect!`;
+    if (!session) {
+      return;
     }
 
-    message += `\n\nType /quiz to try again or /word for a random word!`;
-
-    ctx.reply(message, { parse_mode: 'Markdown' });
-
-    // Reset quiz session
-    session.studyMode = 'quick';
-    session.quizScore = 0;
-    session.totalQuestions = 0;
-    session.currentWord = undefined;
-    this.userSessions.set(userId, session);
+    const percentage = Math.round((session.quizScore / session.totalQuestions) * 100);
+    
+    let summary = 
+      `🎉 **Quiz Complete!**\n\n` +
+      `📊 **Final Score:** ${session.quizScore}/${session.totalQuestions} (${percentage}%)\n\n`;
+    
+    if (session.wrongAnswers.length > 0) {
+      summary += `📝 **Words to Review:**\n`;
+      session.wrongAnswers.forEach((item, index) => {
+        summary += `${index + 1}. **${item.word.korean}** - ${item.word.english}\n`;
+      });
+      summary += `\n`;
+    }
+    
+    if (percentage >= 80) {
+      summary += `🌟 **Excellent work!** You're mastering Korean!`;
+    } else if (percentage >= 60) {
+      summary += `👍 **Good job!** Keep practicing to improve!`;
+    } else {
+      summary += `💪 **Keep studying!** Practice makes perfect!`;
+    }
+    
+    summary += `\n\n🎯 **Options:**\n` +
+      `• Type /quiz to try again\n` +
+      `• Type /word for a random word\n` +
+      `• Type /study for more practice`;
+    
+    ctx.reply(summary, { parse_mode: 'Markdown' });
+    
+    // Clear session
+    this.userSessions.delete(userId);
   }
 
   private async showStats(ctx: Context) {
