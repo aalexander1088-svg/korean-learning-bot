@@ -1,0 +1,54 @@
+name: Daily News Email
+
+on:
+  schedule:
+    # Run at 5:00 AM CST (11:00 AM UTC) every day
+    - cron: '0 11 * * *'
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  news-email:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build project
+      run: npm run build
+      
+    - name: Send News Email
+      env:
+        EMAIL_USER: ${{ secrets.EMAIL_USER }}
+        EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+        DEFAULT_EMAIL: ${{ secrets.DEFAULT_EMAIL }}
+        NEWS_RECIPIENT_EMAIL: ${{ secrets.NEWS_RECIPIENT_EMAIL }}
+        NODE_OPTIONS: "--no-experimental-fetch"
+      run: |
+        echo "📰 Sending daily news email..."
+        echo "🔧 Creating .env file for Node.js..."
+        cat > .env << EOF
+        EMAIL_USER=$EMAIL_USER
+        EMAIL_PASSWORD=$EMAIL_PASSWORD
+        DEFAULT_EMAIL=$DEFAULT_EMAIL
+        NEWS_RECIPIENT_EMAIL=$NEWS_RECIPIENT_EMAIL
+        EOF
+        echo "🚀 Running news bot..."
+        node dist/news-bot-runner.js
+        
+    - name: Notify on success
+      if: success()
+      run: echo "✅ Daily news email sent successfully!"
+      
+    - name: Notify on failure
+      if: failure()
+      run: echo "❌ Daily news email failed!"

@@ -1,0 +1,100 @@
+name: Daily Korean Learning Email
+
+on:
+  schedule:
+    # Run at 5:30 AM CST (11:30 AM UTC) every day - 30 minutes after news
+    - cron: '30 11 * * *'
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  korean-learning:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build project
+      run: npm run build
+      
+    - name: Create sample Korean content
+      run: |
+        mkdir -p sample-content
+        cat > sample-content/daily-korean.txt << 'EOF'
+        한국어 수업 노트 - Daily Review
+        
+        오늘은 새로운 단어들을 배웠어요.
+        
+        예전에는 공사장에서 일했어요. 현재는 한국어를 배우고 있어요.
+        드디어 한국어를 잘하게 되었어요.
+        
+        그림을 그리는 것을 좋아해요. 화가가 되고 싶어요.
+        벽에 그림을 걸어요.
+        
+        새로운 단어들:
+        - 달리기 (running)
+        - 그림 (painting) 
+        - 화가 (painter)
+        - 벽 (wall)
+        - 걸다 (to hang)
+        - 복잡한 (complicated)
+        - 단순하다 (to be simple)
+        - 흡수하다 (to absorb)
+        - 충격 (shock)
+        - 영향 (influence)
+        
+        문법 패턴:
+        - V-고 싶어요 (want to do)
+        - N-을/를 좋아해요 (like to do)
+        - V-어/아 있다 (ongoing action)
+        
+        예문:
+        - 그림을 그리는 것을 좋아해요.
+        - 화가가 되고 싶어요.
+        - 벽에 그림을 걸어요.
+        - 고양이가 소파에 앉아 있어요.
+        EOF
+        
+    - name: Send Korean Learning Email
+      env:
+        EMAIL_USER: ${{ secrets.EMAIL_USER }}
+        EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+        DEFAULT_EMAIL: ${{ secrets.DEFAULT_EMAIL }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        GOOGLE_DOC_ID: ${{ secrets.GOOGLE_DOC_ID }}
+        GOOGLE_SERVICE_ACCOUNT_EMAIL: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_EMAIL }}
+        GOOGLE_PRIVATE_KEY: ${{ secrets.GOOGLE_PRIVATE_KEY }}
+        GITHUB_ACTIONS: "true"
+        NODE_OPTIONS: "--no-experimental-fetch"
+      run: |
+        echo "🇰🇷 Sending Korean learning email..."
+        echo "🔧 Creating .env file for Node.js..."
+        cat > .env << EOF
+        EMAIL_USER=$EMAIL_USER
+        EMAIL_PASSWORD=$EMAIL_PASSWORD
+        DEFAULT_EMAIL=$DEFAULT_EMAIL
+        OPENAI_API_KEY=$OPENAI_API_KEY
+        GOOGLE_DOC_ID=$GOOGLE_DOC_ID
+        GOOGLE_SERVICE_ACCOUNT_EMAIL=$GOOGLE_SERVICE_ACCOUNT_EMAIL
+        GOOGLE_PRIVATE_KEY=$GOOGLE_PRIVATE_KEY
+        GITHUB_ACTIONS=true
+        EOF
+        echo "🚀 Running Korean learning bot..."
+        node dist/reliable-scheduler.js
+        
+    - name: Notify on success
+      if: success()
+      run: echo "✅ Korean learning email sent successfully!"
+      
+    - name: Notify on failure
+      if: failure()
+      run: echo "❌ Korean learning email failed!"
