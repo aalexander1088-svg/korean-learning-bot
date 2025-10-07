@@ -34,6 +34,7 @@
     "render-hourly": "node dist/render-hourly-sender.js",
     "test-quiz": "ts-node src/test-quiz-question.ts",
     "test-startup": "ts-node src/test-bot-startup.ts",
+    "health-check": "ts-node src/health-check.ts",
     "test-google-docs": "ts-node src/test-google-docs.ts",
     "extract-json": "ts-node src/extract-json-info.ts",
     "upload-pdf": "ts-node src/pdf-uploader.ts"

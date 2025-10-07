@@ -36,6 +36,7 @@ class RailwayKoreanBot {
   private userSessions: Map<number, UserSession> = new Map();
   private currentHourlyQuestion: { word: string; answer: string; questionType: string } | null = null;
   private isStarted: boolean = false;
+  private lastCommandTime: Map<number, number> = new Map();
 
   constructor() {
     this.bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN!);
@@ -149,6 +150,16 @@ class RailwayKoreanBot {
     // Start quiz
     this.bot.command('quiz', async (ctx) => {
       const userId = ctx.from!.id;
+      const now = Date.now();
+      
+      // Debounce: prevent multiple quiz starts within 5 seconds
+      const lastTime = this.lastCommandTime.get(userId) || 0;
+      if (now - lastTime < 5000) {
+        console.log(`⚠️ Debouncing quiz command for user ${userId}`);
+        return;
+      }
+      this.lastCommandTime.set(userId, now);
+      
       const session: UserSession = {
         userId,
         studyMode: 'quiz',
