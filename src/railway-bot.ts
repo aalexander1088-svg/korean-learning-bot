@@ -339,17 +339,25 @@ class RailwayKoreanBot {
   }
 
   private async handleHourlyQuizResponse(ctx: Context, userAnswer: string) {
-    // Simple response for hourly quiz answers
-    // Since we don't know the exact question, provide general feedback
-    const responses = [
-      "Good try! 💪 Keep practicing with /quiz for interactive questions!",
-      "Nice attempt! 🎯 Try /quiz for more practice questions!",
-      "Keep learning! 📚 Use /quiz for interactive practice!",
-      "Great effort! 🌟 Practice more with /quiz!"
-    ];
+    // Get a random word from PDF vocabulary to provide example
+    const randomWord = await this.getRandomWord();
     
-    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-    ctx.reply(randomResponse);
+    if (randomWord) {
+      const exampleSentence = await this.generateExampleSentence(randomWord);
+      
+      const responses = [
+        `Good try! 💪 Here's an example with **${randomWord.korean}** (${randomWord.english}):\n\n💬 ${exampleSentence}\n\nKeep practicing with /quiz!`,
+        `Nice attempt! 🎯 Here's an example with **${randomWord.korean}** (${randomWord.english}):\n\n💬 ${exampleSentence}\n\nTry /quiz for more practice!`,
+        `Keep learning! 📚 Here's an example with **${randomWord.korean}** (${randomWord.english}):\n\n💬 ${exampleSentence}\n\nUse /quiz for interactive practice!`,
+        `Great effort! 🌟 Here's an example with **${randomWord.korean}** (${randomWord.english}):\n\n💬 ${exampleSentence}\n\nPractice more with /quiz!`
+      ];
+      
+      const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+      ctx.reply(randomResponse, { parse_mode: 'Markdown' });
+    } else {
+      // Fallback if no word available
+      ctx.reply("Good try! 💪 Keep practicing with /quiz for interactive questions!");
+    }
   }
 
   private async checkQuizAnswer(ctx: Context, userAnswer: string) {
@@ -373,12 +381,20 @@ class RailwayKoreanBot {
       session.quizScore++;
       await this.updateWordStats(word.id, true);
       
-      feedback = `✅ **Correct!** Great job!\n\n`;
+      // Generate example sentence for correct answer
+      const exampleSentence = await this.generateExampleSentence(word);
+      
+      feedback = `✅ **Correct!** Great job!\n\n` +
+        `💬 **Example:** ${exampleSentence}\n\n`;
     } else {
       await this.updateWordStats(word.id, false);
       
+      // Generate example sentence for incorrect answer
+      const exampleSentence = await this.generateExampleSentence(word);
+      
       feedback = `❌ **Not quite right.**\n\n` +
-        `The correct answer is: **${word.korean}** - ${word.english}\n\n`;
+        `The correct answer is: **${word.korean}** - ${word.english}\n\n` +
+        `💬 **Example:** ${exampleSentence}\n\n`;
     }
 
     feedback += `📊 **Score:** ${session.quizScore}/${session.totalQuestions}\n\n`;
