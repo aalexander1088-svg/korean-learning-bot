@@ -2,9 +2,8 @@ name: Render Hourly Korean Bot
 
 on:
   schedule:
-    # Run every hour from 7 AM to 6 PM CST (1 PM to 12 AM UTC)
-    - cron: '0 13-23 * * *'  # 1 PM to 11 PM UTC (7 AM to 5 PM CST)
-    - cron: '0 0 * * *'      # 12 AM UTC (6 PM CST)
+    # Run every hour from 7 AM to 6 PM CDT (12 PM to 11 PM UTC)
+    - cron: '0 12-23 * * *'  # 12 PM to 11 PM UTC (7 AM to 6 PM CDT)
   workflow_dispatch: # Allow manual triggering
 
 jobs:
