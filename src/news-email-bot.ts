@@ -10,6 +10,14 @@ export class NewsEmailBot {
 
   constructor() {
     this.scraper = new NewsScraper();
+    
+    // Debug: Check environment variables
+    console.log('🔍 Debug: Email configuration:');
+    console.log('EMAIL_USER:', process.env.EMAIL_USER ? `${process.env.EMAIL_USER.substring(0, 10)}...` : 'NOT SET');
+    console.log('EMAIL_PASSWORD:', process.env.EMAIL_PASSWORD ? `${process.env.EMAIL_PASSWORD.substring(0, 5)}...` : 'NOT SET');
+    console.log('EMAIL_HOST:', process.env.EMAIL_HOST || 'smtp.gmail.com');
+    console.log('EMAIL_PORT:', process.env.EMAIL_PORT || '587');
+    
     this.transporter = nodemailer.createTransport({
       host: process.env.EMAIL_HOST || 'smtp.gmail.com',
       port: parseInt(process.env.EMAIL_PORT || '587'),

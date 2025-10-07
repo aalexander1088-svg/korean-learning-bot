@@ -33,7 +33,13 @@ jobs:
         DEFAULT_EMAIL: ${{ secrets.DEFAULT_EMAIL }}
         NEWS_RECIPIENT_EMAIL: ${{ secrets.NEWS_RECIPIENT_EMAIL }}
         NODE_OPTIONS: "--no-experimental-fetch"
-      run: npm run news-bot
+      run: |
+        echo "🔍 Debug: Checking environment variables..."
+        echo "EMAIL_USER: ${EMAIL_USER:0:10}..." 
+        echo "EMAIL_PASSWORD: ${EMAIL_PASSWORD:0:5}..."
+        echo "DEFAULT_EMAIL: $DEFAULT_EMAIL"
+        echo "NEWS_RECIPIENT_EMAIL: $NEWS_RECIPIENT_EMAIL"
+        npm run news-bot
       
     - name: Run Korean learning bot (PDF + Google Docs)
       env:
