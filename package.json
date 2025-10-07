@@ -29,6 +29,8 @@
     "test-telegram-bot": "ts-node src/test-telegram-bot.ts",
     "add-sample-vocabulary": "ts-node src/add-sample-vocabulary.ts",
     "send-hourly-word": "node dist/send-hourly-word.js",
+    "railway-bot": "node dist/railway-bot-runner.js",
+    "railway-hourly": "node dist/railway-hourly-sender.js",
     "test-google-docs": "ts-node src/test-google-docs.ts",
     "extract-json": "ts-node src/extract-json-info.ts",
     "upload-pdf": "ts-node src/pdf-uploader.ts"
