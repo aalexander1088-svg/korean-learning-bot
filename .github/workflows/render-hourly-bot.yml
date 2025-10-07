@@ -1,0 +1,52 @@
+name: Render Hourly Korean Bot
+
+on:
+  schedule:
+    # Run every hour from 7 AM to 6 PM CST (1 PM to 12 AM UTC)
+    - cron: '0 13-23 * * *'  # 1 PM to 11 PM UTC (7 AM to 5 PM CST)
+    - cron: '0 0 * * *'      # 12 AM UTC (6 PM CST)
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  send-render-hourly-word:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci --prefer-offline --no-audit
+      
+    - name: Build project
+      run: npm run build
+      
+    - name: Send Hourly Word via Render
+      env:
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        NODE_OPTIONS: "--no-experimental-fetch"
+      run: |
+        echo "🔧 Creating .env file for Node.js..."
+        cat > .env << EOF
+        TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN
+        TELEGRAM_CHAT_ID=$TELEGRAM_CHAT_ID
+        OPENAI_API_KEY=$OPENAI_API_KEY
+        EOF
+        echo "🚀 Running Render hourly word sender..."
+        node dist/render-hourly-sender.js
+        
+    - name: Notify on success
+      if: success()
+      run: echo "✅ Render hourly Korean word sent successfully!"
+      
+    - name: Notify on failure
+      if: failure()
+      run: echo "❌ Render hourly Korean word failed!"
