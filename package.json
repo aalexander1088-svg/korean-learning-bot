@@ -61,13 +61,13 @@
     "sqlite": "^5.1.1",
     "sqlite3": "^5.1.6",
     "telegraf": "^4.15.0",
-    "xml2js": "^0.6.2"
+    "xml2js": "^0.6.2",
+    "@types/node": "^20.8.10"
   },
   "devDependencies": {
     "@types/cheerio": "^0.22.31",
     "@types/express": "^4.17.21",
     "@types/multer": "^1.4.11",
-    "@types/node": "^20.8.10",
     "@types/node-cron": "^3.0.11",
     "@types/nodemailer": "^6.4.14",
     "@types/pdf-parse": "^1.1.4",
