@@ -17,7 +17,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'
         cache: 'npm'
         
     - name: Install dependencies
@@ -32,6 +32,7 @@ jobs:
         EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
         DEFAULT_EMAIL: ${{ secrets.DEFAULT_EMAIL }}
         NEWS_RECIPIENT_EMAIL: ${{ secrets.NEWS_RECIPIENT_EMAIL }}
+        NODE_OPTIONS: "--no-experimental-fetch"
       run: npm run news-bot
       
     - name: Run Korean learning bot (PDF + Google Docs)
@@ -44,6 +45,7 @@ jobs:
         GOOGLE_SERVICE_ACCOUNT_EMAIL: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_EMAIL }}
         GOOGLE_PRIVATE_KEY: ${{ secrets.GOOGLE_PRIVATE_KEY }}
         GITHUB_ACTIONS: "true"
+        NODE_OPTIONS: "--no-experimental-fetch"
       run: |
         # Run the scheduler which will handle both PDF and Google Doc emails
         npm run schedule -- --test || echo "Korean learning bot completed"

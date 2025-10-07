@@ -17,7 +17,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'
         cache: 'npm'
         
     - name: Install dependencies
@@ -72,6 +72,7 @@ jobs:
         DEFAULT_EMAIL: ${{ secrets.DEFAULT_EMAIL }}
         NEWS_RECIPIENT_EMAIL: ${{ secrets.NEWS_RECIPIENT_EMAIL }}
         GITHUB_ACTIONS: "true"
+        NODE_OPTIONS: "--no-experimental-fetch"
       run: |
         node dist/reliable-scheduler.js
         
@@ -82,5 +83,6 @@ jobs:
         EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
         DEFAULT_EMAIL: ${{ secrets.DEFAULT_EMAIL }}
         NEWS_RECIPIENT_EMAIL: ${{ secrets.NEWS_RECIPIENT_EMAIL }}
+        NODE_OPTIONS: "--no-experimental-fetch"
       run: |
         node dist/news-bot-runner.js
