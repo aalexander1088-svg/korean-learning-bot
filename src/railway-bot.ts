@@ -412,24 +412,33 @@ class RailwayKoreanBot {
     const session = this.userSessions.get(userId);
     const userText = ctx.message && 'text' in ctx.message ? ctx.message.text : '';
 
+    console.log(`🔍 Received text: "${userText}" from user ${userId}`);
+
     if (!userText) {
+      console.log('❌ No text found in message');
       return;
     }
 
     // Check if user is in active quiz mode
     if (session && session.studyMode === 'quiz' && session.currentWord) {
+      console.log('📝 User in quiz mode, checking answer');
       await this.checkQuizAnswer(ctx, userText.toLowerCase().trim());
       return;
     }
 
     // Check if text contains Korean characters
-    if (this.containsKoreanText(userText)) {
+    const containsKorean = this.containsKoreanText(userText);
+    console.log(`🔍 Contains Korean: ${containsKorean}`);
+    
+    if (containsKorean) {
+      console.log('🇰🇷 Korean text detected, handling Korean word learning');
       await this.handleKoreanWordLearning(ctx, userText);
       return;
     }
 
     // Handle other responses (hourly quiz, etc.)
     if (!session || session.studyMode !== 'quiz') {
+      console.log('💬 Handling general response');
       await this.handleHourlyQuizResponse(ctx, userText);
     }
   }
@@ -826,25 +835,35 @@ class RailwayKoreanBot {
 
   private async handleKoreanWordLearning(ctx: Context, koreanText: string) {
     try {
+      console.log(`🇰🇷 Starting Korean word learning for: "${koreanText}"`);
+      
       const userId = ctx.from!.id;
       const koreanWord = this.extractKoreanWord(koreanText);
       
+      console.log(`🔍 Extracted Korean word: "${koreanWord}"`);
+      
       if (!koreanWord) {
+        console.log('❌ No valid Korean word extracted');
         ctx.reply('Please send a valid Korean word! 🇰🇷');
         return;
       }
 
+      console.log('🤖 Generating teaching response...');
       // Generate teaching response using OpenAI
       const teachingResponse = await this.generateKoreanTeaching(koreanWord);
       
+      console.log('💾 Adding to personal vocabulary...');
       // Add to user's personal vocabulary database
       await this.addToPersonalVocabulary(userId, koreanWord);
       
+      console.log('📤 Sending response to user...');
       // Send response
       ctx.reply(teachingResponse, { parse_mode: 'Markdown' });
       
+      console.log('✅ Korean word learning completed successfully');
+      
     } catch (error) {
-      console.error('Error handling Korean word learning:', error);
+      console.error('❌ Error handling Korean word learning:', error);
       ctx.reply('Sorry, I had trouble processing that Korean word. Please try again!');
     }
   }
