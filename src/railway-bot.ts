@@ -730,6 +730,56 @@ class RailwayKoreanBot {
     }
   }
 
+  // Method to send hourly quiz (replaces separate hourly senders)
+  public async sendHourlyQuiz(chatId: string) {
+    try {
+      const word = await this.getRandomWord();
+      if (!word) {
+        return;
+      }
+
+      // Generate example sentence using OpenAI
+      const exampleSentence = await this.generateExampleSentence(word);
+
+      // Create quiz-style question with immediate answer and example
+      const questionTypes = ['meaning', 'word', 'sentence'];
+      const questionType = questionTypes[Math.floor(Math.random() * questionTypes.length)];
+      let quizMessage = '';
+      
+      if (questionType === 'meaning') {
+        // Show Korean word, ask for English meaning
+        quizMessage = 
+          `🕐 **Hourly Korean Quiz**\n\n` +
+          `**Question:** What does **${word.korean}** mean?\n\n` +
+          `**Answer:** ${word.english}\n\n` +
+          `💬 **Example:** ${exampleSentence}\n\n` +
+          `🎯 Try to remember this word! Use /quiz for interactive practice!`;
+      } else if (questionType === 'word') {
+        // Show English word, ask for Korean translation
+        quizMessage = 
+          `🕐 **Hourly Korean Quiz**\n\n` +
+          `**Question:** What is the Korean word for **${word.english}**?\n\n` +
+          `**Answer:** ${word.korean}\n\n` +
+          `💬 **Example:** ${exampleSentence}\n\n` +
+          `🎯 Try to remember this word! Use /quiz for interactive practice!`;
+      } else {
+        // Show sentence, ask for translation
+        const sentenceAnswer = exampleSentence.split('(')[1]?.split(')')[0]?.trim() || 'See the sentence above';
+        quizMessage = 
+          `🕐 **Hourly Korean Quiz**\n\n` +
+          `**Question:** What does this Korean sentence mean?\n\n` +
+          `**${exampleSentence.split('(')[0].trim()}**\n\n` +
+          `**Answer:** ${sentenceAnswer}\n\n` +
+          `🎯 Try to remember this sentence! Use /quiz for interactive practice!`;
+      }
+
+      await this.bot.telegram.sendMessage(chatId, quizMessage, { parse_mode: 'Markdown' });
+
+    } catch (error) {
+      console.error('Error sending hourly quiz:', error);
+    }
+  }
+
   public async start() {
     try {
       if (this.isStarted) {

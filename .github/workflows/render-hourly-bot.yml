@@ -39,8 +39,8 @@ jobs:
         TELEGRAM_CHAT_ID=$TELEGRAM_CHAT_ID
         OPENAI_API_KEY=$OPENAI_API_KEY
         EOF
-        echo "🚀 Running Render hourly quiz sender..."
-        node dist/render-hourly-sender.js
+        echo "🚀 Running unified hourly sender..."
+        node dist/unified-hourly-sender.js
         
     - name: Notify on success
       if: success()
