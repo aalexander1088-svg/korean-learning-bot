@@ -1,48 +1,83 @@
-import { KoreanDatabase } from './database';
+#!/usr/bin/env node
 
-async function showVocabularyReview() {
-  const database = new KoreanDatabase();
-  
-  try {
-    console.log('📚 Korean Vocabulary Review');
-    console.log('============================');
-    
-    const vocabulary = await database.getAllVocabulary();
-    
-    if (vocabulary.length === 0) {
-      console.log('❌ No vocabulary found in database');
+import * as sqlite3 from 'sqlite3';
+import * as path from 'path';
+
+async function showVocabulary() {
+  const dbPath = path.join(process.cwd(), 'korean_learning.db');
+  const db = new sqlite3.Database(dbPath);
+
+  console.log('📚 Your Korean Vocabulary Database:');
+  console.log('=====================================');
+
+  // Get recent vocabulary
+  db.all(`
+    SELECT korean, english, dateAdded, difficulty, isEssential 
+    FROM vocabulary 
+    ORDER BY dateAdded DESC 
+    LIMIT 15
+  `, (err, rows: any[]) => {
+    if (err) {
+      console.error('Error:', err);
       return;
     }
 
-    console.log(`📖 Found ${vocabulary.length} vocabulary words\n`);
+    if (rows.length === 0) {
+      console.log('No vocabulary found in database.');
+      return;
+    }
+
+    console.log(`\n📖 Recent Words (${rows.length} total):`);
+    console.log('----------------------------------------');
     
-    // Show first 20 words for review
-    const wordsToReview = vocabulary.slice(0, 20);
-    
-    wordsToReview.forEach((word, index) => {
-      console.log(`${index + 1}. Korean: ${word.korean}`);
-      console.log(`   English: ${word.english}`);
-      console.log(`   Added: ${word.dateAdded}`);
-      console.log(`   Reviews: ${word.reviewCount}`);
+    rows.forEach((row, index) => {
+      const essential = row.isEssential ? '⭐' : '';
+      const difficulty = row.difficulty || 'Medium';
+      const date = new Date(row.dateAdded).toLocaleDateString();
+      
+      console.log(`${index + 1}. ${row.korean} = ${row.english} ${essential}`);
+      console.log(`   Difficulty: ${difficulty} | Added: ${date}`);
       console.log('');
     });
-    
-    console.log(`\n📊 Showing ${wordsToReview.length} of ${vocabulary.length} total words`);
-    console.log('💡 Use "npm run review" for interactive practice');
-    
-  } catch (error) {
-    console.error('❌ Error:', error);
-  } finally {
-    database.close();
-  }
+
+    // Get essential words
+    db.all(`
+      SELECT korean, english, dateAdded 
+      FROM vocabulary 
+      WHERE isEssential = 1 
+      ORDER BY dateAdded DESC 
+      LIMIT 10
+    `, (err, essentialRows: any[]) => {
+      if (err) {
+        console.error('Error:', err);
+        return;
+      }
+
+      if (essentialRows.length > 0) {
+        console.log('⭐ Essential Words:');
+        console.log('------------------');
+        
+        essentialRows.forEach((row, index) => {
+          const date = new Date(row.dateAdded).toLocaleDateString();
+          console.log(`${index + 1}. ${row.korean} = ${row.english} (${date})`);
+        });
+      }
+
+      // Get total count
+      db.get(`
+        SELECT COUNT(*) as total FROM vocabulary
+      `, (err, countRow: any) => {
+        if (err) {
+          console.error('Error:', err);
+          return;
+        }
+
+        console.log(`\n📊 Total vocabulary words: ${countRow.total}`);
+        
+        db.close();
+      });
+    });
+  });
 }
 
-// Run the review
-showVocabularyReview();
-
-
-
-
-
-
-
+showVocabulary().catch(console.error);
