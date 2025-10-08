@@ -33,7 +33,7 @@
     "railway-hourly": "node dist/railway-hourly-sender.js",
     "render-hourly": "node dist/render-hourly-sender.js",
     "enhanced-bot": "ts-node src/enhanced-bot-runner.ts",
-    "enhanced-bot-build": "node dist/enhanced-bot-runner.js",
+    "render-enhanced": "node dist/render-enhanced-bot.js",
     "test-quiz": "ts-node src/test-quiz-question.ts",
     "test-startup": "ts-node src/test-bot-startup.ts",
     "health-check": "ts-node src/health-check.ts",
