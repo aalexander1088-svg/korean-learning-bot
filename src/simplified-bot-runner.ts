@@ -19,10 +19,8 @@ async function startSimplifiedBot() {
   }
 
   try {
-    // Add a delay to ensure any previous bot instances are fully stopped
-    console.log('⏳ Waiting 30 seconds for any previous bot instances to stop...');
-    await new Promise(resolve => setTimeout(resolve, 30000)); // 30 seconds
-    
+    // Start the bot immediately
+    console.log('🤖 Starting Simplified Korean Learning Bot...');
     const bot = new SimplifiedKoreanBot();
     await bot.start();
     

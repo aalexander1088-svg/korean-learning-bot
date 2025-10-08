@@ -81,20 +81,18 @@ class WebServiceBot {
         throw new Error('OPENAI_API_KEY environment variable is required.');
       }
 
-      // Add a delay to ensure any previous bot instances are fully stopped
-      console.log('⏳ Waiting 30 seconds for any previous bot instances to stop...');
-      await new Promise(resolve => setTimeout(resolve, 30000)); // 30 seconds
-      
-      // Start the Telegram bot
+      // Start the Telegram bot immediately
+      console.log('🤖 Starting Telegram bot...');
       await this.bot.start();
       console.log('✅ Telegram bot started successfully');
       
-      // Start the Express server
-      this.app.listen(this.port, () => {
+      // Start the Express server - bind to all interfaces for Render
+      this.app.listen(this.port, '0.0.0.0', () => {
         console.log(`🌐 Web service running on port ${this.port}`);
         console.log(`📱 Telegram bot is active and responding to messages`);
         console.log(`💓 Health check: http://localhost:${this.port}/health`);
         console.log(`🔄 Keep-alive: http://localhost:${this.port}/keepalive`);
+        console.log(`🚀 Service ready and listening on 0.0.0.0:${this.port}`);
       });
       
       console.log('✅ Korean Telegram Bot Web Service is running!');
