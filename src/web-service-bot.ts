@@ -87,27 +87,41 @@ class WebServiceBot {
         throw new Error('OPENAI_API_KEY environment variable is required.');
       }
 
-      // Start the Telegram bot immediately
+      // Start the Telegram bot with retry logic
       console.log('🤖 Starting Telegram bot...');
-      try {
-        await this.bot.start();
-        console.log('✅ Telegram bot started successfully');
-      } catch (botError) {
-        console.error('❌ Telegram bot failed to start:', botError);
-        console.error('💡 This might be due to:');
-        console.error('   • Invalid TELEGRAM_BOT_TOKEN');
-        console.error('   • Network connectivity issues');
-        console.error('   • Another bot instance running');
-        console.error('   • Missing environment variables');
-        
-        // Continue with web service even if bot fails
-        console.log('⚠️ Continuing with web service only...');
+      let botStarted = false;
+      
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+          console.log(`🔄 Attempt ${attempt}/3 to start Telegram bot...`);
+          await this.bot.start();
+          console.log('✅ Telegram bot started successfully');
+          botStarted = true;
+          break;
+        } catch (botError: any) {
+          console.error(`❌ Telegram bot attempt ${attempt} failed:`, botError.message || botError);
+          
+          if (attempt < 3) {
+            console.log(`⏳ Waiting 5 seconds before retry...`);
+            await new Promise(resolve => setTimeout(resolve, 5000));
+          } else {
+            console.error('❌ Telegram bot failed after 3 attempts');
+            console.error('💡 This might be due to:');
+            console.error('   • Network connectivity issues (ETIMEDOUT)');
+            console.error('   • Telegram API rate limiting');
+            console.error('   • Invalid TELEGRAM_BOT_TOKEN');
+            console.error('   • Render network restrictions');
+            
+            // Continue with web service even if bot fails
+            console.log('⚠️ Continuing with web service only...');
+          }
+        }
       }
       
       // Start the Express server - bind to all interfaces for Render
       this.app.listen(this.port, '0.0.0.0', () => {
         console.log(`🌐 Web service running on port ${this.port}`);
-        console.log(`📱 Telegram bot is active and responding to messages`);
+        console.log(`📱 Telegram bot: ${botStarted ? '✅ Active and responding' : '⚠️ Disabled (timeout issues)'}`);
         console.log(`💓 Health check: http://localhost:${this.port}/health`);
         console.log(`🔄 Keep-alive: http://localhost:${this.port}/keepalive`);
         console.log(`🚀 Service ready and listening on 0.0.0.0:${this.port}`);
