@@ -1,12 +1,12 @@
 version: 2
 services:
   korean-telegram-bot:
-    type: worker
+    type: web
     name: korean-telegram-bot
     env: node
     plan: free
     buildCommand: npm install && npm run build
-    startCommand: npm run render-enhanced
+    startCommand: npm run render-web
     envVars:
       - key: TELEGRAM_BOT_TOKEN
         sync: false
