@@ -73,6 +73,12 @@ class WebServiceBot {
     try {
       console.log('🚀 Starting Korean Telegram Bot as Web Service...');
       
+      // Debug environment variables
+      console.log('🔍 Environment check:');
+      console.log(`   • TELEGRAM_BOT_TOKEN: ${process.env.TELEGRAM_BOT_TOKEN ? '✅ Set' : '❌ Missing'}`);
+      console.log(`   • OPENAI_API_KEY: ${process.env.OPENAI_API_KEY ? '✅ Set' : '❌ Missing'}`);
+      console.log(`   • PORT: ${process.env.PORT || '3000 (default)'}`);
+      
       if (!process.env.TELEGRAM_BOT_TOKEN) {
         throw new Error('TELEGRAM_BOT_TOKEN environment variable is required.');
       }
@@ -83,8 +89,20 @@ class WebServiceBot {
 
       // Start the Telegram bot immediately
       console.log('🤖 Starting Telegram bot...');
-      await this.bot.start();
-      console.log('✅ Telegram bot started successfully');
+      try {
+        await this.bot.start();
+        console.log('✅ Telegram bot started successfully');
+      } catch (botError) {
+        console.error('❌ Telegram bot failed to start:', botError);
+        console.error('💡 This might be due to:');
+        console.error('   • Invalid TELEGRAM_BOT_TOKEN');
+        console.error('   • Network connectivity issues');
+        console.error('   • Another bot instance running');
+        console.error('   • Missing environment variables');
+        
+        // Continue with web service even if bot fails
+        console.log('⚠️ Continuing with web service only...');
+      }
       
       // Start the Express server - bind to all interfaces for Render
       this.app.listen(this.port, '0.0.0.0', () => {
@@ -107,14 +125,28 @@ class WebServiceBot {
       // Keep-alive mechanism for free tier
       this.setupKeepAlive();
       
+      // Keep the process alive
+      console.log('🔄 Service is running and will stay alive...');
+      
     } catch (error) {
       console.error('❌ Failed to start Korean Telegram Bot Web Service:', error);
-      console.error('💡 This might be due to another bot instance still running.');
-      console.error('💡 Please check:');
-      console.error('   • All Render services are stopped');
-      console.error('   • No local bot processes running');
-      console.error('   • Wait 5 minutes before retrying');
-      process.exit(1);
+      console.error('💡 Attempting to start web service only...');
+      
+      // Try to start just the web service as a fallback
+      try {
+        this.app.listen(this.port, '0.0.0.0', () => {
+          console.log(`🌐 Web service running on port ${this.port} (bot disabled)`);
+          console.log(`💓 Health check: http://localhost:${this.port}/health`);
+          console.log('⚠️ Telegram bot is not available, but web service is running');
+        });
+        
+        // Keep the process alive
+        console.log('🔄 Web service is running and will stay alive...');
+        
+      } catch (webError) {
+        console.error('❌ Failed to start web service:', webError);
+        process.exit(1);
+      }
     }
   }
 
