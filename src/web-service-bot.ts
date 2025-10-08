@@ -87,35 +87,19 @@ class WebServiceBot {
         throw new Error('OPENAI_API_KEY environment variable is required.');
       }
 
-      // Start the Telegram bot with retry logic
+      // Start the Telegram bot
       console.log('🤖 Starting Telegram bot...');
       let botStarted = false;
       
-      for (let attempt = 1; attempt <= 3; attempt++) {
-        try {
-          console.log(`🔄 Attempt ${attempt}/3 to start Telegram bot...`);
-          await this.bot.start();
-          console.log('✅ Telegram bot started successfully');
-          botStarted = true;
-          break;
-        } catch (botError: any) {
-          console.error(`❌ Telegram bot attempt ${attempt} failed:`, botError.message || botError);
-          
-          if (attempt < 3) {
-            console.log(`⏳ Waiting 5 seconds before retry...`);
-            await new Promise(resolve => setTimeout(resolve, 5000));
-          } else {
-            console.error('❌ Telegram bot failed after 3 attempts');
-            console.error('💡 This might be due to:');
-            console.error('   • Network connectivity issues (ETIMEDOUT)');
-            console.error('   • Telegram API rate limiting');
-            console.error('   • Invalid TELEGRAM_BOT_TOKEN');
-            console.error('   • Render network restrictions');
-            
-            // Continue with web service even if bot fails
-            console.log('⚠️ Continuing with web service only...');
-          }
-        }
+      try {
+        await this.bot.start();
+        console.log('✅ Telegram bot started successfully');
+        botStarted = true;
+      } catch (botError: any) {
+        console.error('❌ Telegram bot failed to start:', botError.message || botError);
+        console.error('💡 This is likely due to Render free tier network restrictions');
+        console.error('💡 The web service will continue running without Telegram functionality');
+        console.log('⚠️ Continuing with web service only...');
       }
       
       // Start the Express server - bind to all interfaces for Render
